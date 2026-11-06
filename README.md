@@ -109,7 +109,24 @@ Defaults: presets 300 / 330 / 360 °C, step 5 °C, sleep after 5 min at 150 °C,
 > [!TIP]
 > On **Linux** the FNIRSI bootloader mishandles write caching: copy the file **twice** with `sync` after each copy, or use `scripts/flash_hs02b_linux.sh <file.bin>`. On Windows, if nothing happens, simply copy the file again.
 
-**Going back to stock**: flash the official `APP_HS_02A_*.bin` / `APP_HS_02B_*.bin` the same way. IronOS keeps its settings in a separate flash page, so the stock settings and calibration survive.
+See also [Going back to the stock firmware](#going-back-to-the-stock-firmware).
+
+## Going back to the stock firmware
+
+The FNIRSI bootloader is never modified, so you can return to the official firmware at any time.
+
+1. **Get the official file** for your model (`APP_HS_02A_*.bin` or `APP_HS_02B_*.bin`) from FNIRSI: the support / download section of [fnirsi.com](https://www.fnirsi.com) or by e-mail at support@fnirsi.com. It is not included here because it is FNIRSI's copyrighted software (© FNIRSI, all rights reserved).
+2. **Check it** (optional, recommended): the known HS-02A file is
+
+   | File | Size | SHA-256 |
+   | :-- | :-- | :-- |
+   | `APP_HS_02A_V2.1.1_260112.bin` (V2.1.1, 2026-07-30) | 71 724 bytes | `b55bfb2dce6776fc0ca9d862250426d1daa26736d6c796b9b961ee5d9eee289f` |
+
+   Windows: `certutil -hashfile APP_HS_02A_V2.1.1_260112.bin SHA256` · Linux/macOS: `sha256sum APP_HS_02A_V2.1.1_260112.bin`
+3. **Enter the bootloader**: *Settings → System → Firmware update*, or unplug, hold **OK** and plug in USB.
+4. **Copy the official `.bin`** to the **BOOTLOADER** drive (keep its original file name) and wait for the restart.
+
+What survives: IronOS keeps its own settings in a separate flash page, so the stock settings stay as they were. If you used *Tip → Calibration*, run *Tip → Reset calibration* **before** going back to restore the factory calibration values (the stock firmware would otherwise use your calibration, which is also fine).
 
 ## Tip calibration
 
