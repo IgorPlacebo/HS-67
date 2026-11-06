@@ -2,6 +2,16 @@
 
 All notable changes of **HS-02 Modern UI** (on top of [MYMDO/IronOS-FNIRSI-HS-02B](https://github.com/MYMDO/IronOS-FNIRSI-HS-02B)).
 
+## [1.0.1] — 2026-11-06
+
+### Fixed
+- **False "Shorted" / "No tip"** on irons whose cold tip reads ~0 µV (amplifier offset differs
+  between units): a near-zero reading no longer means short or missing tip, so heating is no longer
+  blocked. "No tip" is now reported for a saturated (open) thermocouple, or when the heater has been
+  driven ≥ 10 W for 2 s without the reading leaving zero.
+- Standby shows a clear "Low input voltage" alert below 9 V (5 V USB / non-PD supply) instead of
+  misleading tip states.
+
 ## [1.0.0] — 2026-11-06
 
 ### Added

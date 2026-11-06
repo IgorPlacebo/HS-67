@@ -14,6 +14,7 @@
 #include "Setup.h"
 #include "TipThermoModel.h"
 #include "history.hpp"
+#include "power.hpp"
 #include "task.h"
 // n32l40x.h defines LCD as a peripheral pointer macro; free the name for the LCD class.
 #undef LCD
@@ -146,12 +147,35 @@ bool          isTipDisconnected() {
   }
 
   const uint16_t raw = getTipRawTemp(0);
-  if (raw == 0) {
-    return false; // Filter still warming up on initial boot
+  if (raw > 31500) {
+    return true; // amplifier saturated: open thermocouple / no cartridge
   }
-  if (raw < 30 || raw > 31500) {
-    return true;
+  // A COLD tip reads ~0 uV on some units (amplifier offset differs between irons), so a low
+  // reading alone must not mean "no tip" -- that blocked heating forever on such irons. Only
+  // when we have been driving the heater (>= 10 W) for 2 s and the reading still hasn't left
+  // zero is the cartridge considered missing; the verdict is then held for 3 s before the
+  // heater is allowed to try again.
+  static TickType_t lowSince = 0, latchedUntil = 0;
+  const TickType_t  now      = xTaskGetTickCount();
+  if (raw < 30) {
+    if ((int32_t)(latchedUntil - now) > 0) {
+      return true;
+    }
+    if (x10WattHistory.average() >= 100) {
+      if (lowSince == 0) {
+        lowSince = now ? now : 1;
+      } else if (now - lowSince > 2 * TICKS_SECOND) {
+        latchedUntil = now + 3 * TICKS_SECOND;
+        lowSince     = 0;
+        return true;
+      }
+    } else if (lowSince && now - lowSince > 4 * TICKS_SECOND) {
+      lowSince = 0; // stale
+    }
+    return false;
   }
+  lowSince     = 0;
+  latchedUntil = now;
   uint16_t tipDisconnectedThres = TipThermoModel::getTipMaxInC() - 50;
   uint32_t tipTemp              = TipThermoModel::getTipInC();
   return tipTemp > tipDisconnectedThres;
@@ -384,14 +408,9 @@ uint8_t getTipResistanceX10() {
 }
 
 bool isTipShorted() {
-  if (tipShorted) {
-    return true;
-  }
-  // Cold thermocouple short check: if tip is connected but raw ADC is near zero (< 5)
-  if (!isTipDisconnected() && getTipRawTemp(0) < 5) {
-    return true;
-  }
-  return false;
+  // Only the real heater-short detector (tip resistance sensing, when built in) may report a
+  // short. A ~0 thermocouple reading is simply a cold tip (or 5 V supply), not a short circuit.
+  return tipShorted;
 }
 uint16_t getTipThermalMass() {
   // TODO: IMPLEMENT
