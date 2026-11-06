@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/yakory777/HS-02A/actions/workflows/build.yml"><img src="https://github.com/yakory777/HS-02A/actions/workflows/build.yml/badge.svg" alt="Сборка"></a>
-  <a href="https://github.com/yakory777/HS-02A/releases/latest"><img src="https://img.shields.io/github/v/release/yakory777/HS-02A?label=прошивка" alt="Релиз"></a>
+  <a href="https://github.com/yakory777/HS-02/actions/workflows/build.yml"><img src="https://github.com/yakory777/HS-02/actions/workflows/build.yml/badge.svg" alt="Сборка"></a>
+  <a href="https://github.com/yakory777/HS-02/releases/latest"><img src="https://img.shields.io/github/v/release/yakory777/HS-02?label=прошивка" alt="Релиз"></a>
   <img src="https://img.shields.io/badge/устройства-HS--02A%20%7C%20HS--02B-ff9f0a" alt="Устройства">
   <a href="LICENSE"><img src="https://img.shields.io/badge/лицензия-GPLv3-30d158" alt="Лицензия"></a>
 </p>
@@ -98,7 +98,7 @@
 
 ## Прошивка
 
-1. Скачай файл со страницы **[Releases](https://github.com/yakory777/HS-02A/releases/latest)**:
+1. Скачай файл со страницы **[Releases](https://github.com/yakory777/HS-02/releases/latest)**:
 
    | Паяльник | Русский | English |
    | :-- | :-- | :-- |
