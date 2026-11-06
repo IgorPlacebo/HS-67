@@ -7,6 +7,7 @@
 
 #include "Settings.h"
 #include "Translation.h"
+#include "../../../source/Core/Threads/UI/drawing/color_160x80/Hs02UiLanguage.cpp"
 #include "ui_drawing.hpp"
 #include "TipThermoModel.h"
 #include "power.hpp"
@@ -19,11 +20,14 @@ constexpr uint16_t kWidth = 160, kHeight = 80, kBytes = kWidth * kHeight / 4;
 uint8_t frame[kBytes];
 const uint16_t kDefaultPalette[4] = {0x0862, 0xF77C, 0xFBC5, 0x45B8};
 const uint16_t *activePalette = kDefaultPalette;
+const ColorBand *activeBands = nullptr;
+uint8_t activeBandCount = 0;
+uint16_t rgbFrame[kWidth * kHeight];
 using TickType_t = uint32_t;
-constexpr TickType_t TICKS_SECOND = 1000;
-constexpr TickType_t TICKS_MIN    = 60 * TICKS_SECOND;
+#define TICKS_SECOND 1000u
+#define TICKS_MIN (60u * TICKS_SECOND)
 TickType_t lastButtonTime = 0, lastMovementTime = 0;
-struct State { uint16_t tip = 428, target = 430, boost = 480, wattsX10 = 425, voltsX10 = 200, tipMicrovolts = 14500; uint8_t source = 0; bool disconnected = false; } state;
+struct State { uint16_t tip = 428, target = 430, boost = 480, sleepTemp = 150, wattsX10 = 425, voltsX10 = 200, tipMicrovolts = 14500; uint8_t source = 0; bool disconnected = false; } state;
 void pixel(uint8_t x, uint8_t y, uint8_t color) {
   if (x >= kWidth || y >= kHeight) return;
   uint16_t i = y * (kWidth / 4) + x / 4; uint8_t shift = (x % 4) * 2;
@@ -45,10 +49,16 @@ void glyph(uint16_t code, FontStyle style, uint8_t x, uint8_t y, uint8_t color) 
 // Production-generated glyph table: this gives the Wasm screen the same font bytes as HS-02 EN.
 #include "../../../../source/Core/Gen/Translation.EN.cpp"
 
+uint16_t hostUiLanguage = 0; // HS02UiLanguage: 0 auto, 1 ru, 2 en
 uint16_t getSettingValue(const enum SettingsOptions option) {
   switch (option) {
   case SolderingTemp: return state.target;
   case BoostTemp: return state.boost;
+  case SleepTemp: return state.sleepTemp;
+  case HS02UiLanguage: return hostUiLanguage;
+  case PresetTemp1: return 300;
+  case PresetTemp2: return 330;
+  case PresetTemp3: return 360;
   case Sensitivity: return 1;
   case SleepTime: return 1;
   case VoltageDiv: return 0;
@@ -56,7 +66,8 @@ uint16_t getSettingValue(const enum SettingsOptions option) {
   }
 }
 bool isTipDisconnected() { return state.disconnected; }
-bool isTipShorted() { return false; }
+bool tipShorted = false;
+bool isTipShorted() { return tipShorted; }
 uint16_t getTipRawTemp(uint8_t) { return state.tipMicrovolts; }
 namespace TipThermoModel {
 TemperatureType_t getTipInC() { return state.tip; }
@@ -70,7 +81,8 @@ TickType_t xTaskGetTickCount() { return 0; }
 uint32_t getSleepTimeout() { return TICKS_MIN; } // Preview deliberately renders “1m”.
 
 void Display::clearColor() { memset(frame, 0, sizeof(frame)); }
-void Display::setColorPalette(const uint16_t *palette) { activePalette = palette ? palette : kDefaultPalette; }
+void Display::setColorPalette(const uint16_t *palette) { activePalette = palette ? palette : kDefaultPalette; activeBandCount = 0; }
+void Display::setColorBands(const ColorBand *bands, uint8_t count) { activeBands = bands; activeBandCount = bands ? count : 0; }
 void Display::fillRectColor(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t c) { for (uint16_t yy=y; yy<y+h; ++yy) for (uint16_t xx=x; xx<x+w; ++xx) pixel(xx, yy, c); }
 void Display::drawTickColor(uint8_t cx, uint8_t cy, float a, uint8_t in, uint8_t out, uint8_t c) { for (uint8_t r=in; r<=out; ++r) pixel((int16_t)(cx + cosf(a)*r), (int16_t)(cy + sinf(a)*r), c); }
 void Display::drawRingColor(uint8_t cx, uint8_t cy, uint8_t r, uint8_t thick, uint8_t c, float start, float end) {
@@ -94,19 +106,30 @@ void Display::drawBitmapColor(const uint8_t *bitmap, uint8_t width, uint8_t heig
 }
 
 void ui_draw_home_gauge_soldering(bool boostModeOn);
+void ui_draw_boot_screen(uint16_t progressX1000);
 
 // Include the actual committed UI implementation, not a copied browser version.
 #include "../../../../source/Core/Threads/UI/drawing/color_160x80/draw_home_gauge.cpp"
 
 extern "C" {
 void hs02_ui_set_state(uint16_t tip, uint16_t target, uint16_t boost, uint16_t wattsX10, uint16_t voltsX10, uint8_t source, uint8_t disconnected) {
-  state = {tip, target, boost, wattsX10, voltsX10, state.tipMicrovolts, source, disconnected != 0};
+  state.tip = tip; state.target = target; state.boost = boost; state.wattsX10 = wattsX10; state.voltsX10 = voltsX10; state.source = source;
+  state.disconnected = disconnected == 1; tipShorted = disconnected == 2;
 }
 void hs02_ui_set_tip_microvolts(uint16_t tipMicrovolts) { state.tipMicrovolts = tipMicrovolts; }
 void hs02_ui_render(uint8_t mode) {
-  Display::clearColor(); if (mode == 0) ui_draw_home_gauge_idle(state.tip); else if (mode == 1) ui_draw_home_gauge_soldering(false); else if (mode == 2) ui_draw_home_gauge_soldering(true); else ui_draw_home_gauge_sleep(state.tip);
+  Display::clearColor(); if (mode == 0) ui_draw_home_gauge_idle(state.tip); else if (mode == 1) ui_draw_home_gauge_soldering(false); else if (mode == 2) ui_draw_home_gauge_soldering(true); else if (mode == 3) ui_draw_home_gauge_sleep(state.tip); else ui_draw_boot_screen(state.tip);
 }
 const uint8_t *hs02_ui_framebuffer() { return frame; }
 uint32_t hs02_ui_framebuffer_size() { return sizeof(frame); }
 const uint16_t *hs02_ui_palette() { return activePalette; }
+// Resolves the 2bpp frame through the active palette or row bands into RGB565 pixels.
+const uint16_t *hs02_ui_rgb565() {
+  for (uint16_t y = 0; y < kHeight; y++) {
+    const uint16_t *pal = activePalette;
+    for (uint8_t b = 0; b < activeBandCount; b++) if (y >= activeBands[b].yStart) pal = activeBands[b].colors;
+    for (uint16_t x = 0; x < kWidth; x++) rgbFrame[y * kWidth + x] = pal[(frame[y * (kWidth / 4) + x / 4] >> ((x % 4) * 2)) & 3];
+  }
+  return rgbFrame;
+}
 }

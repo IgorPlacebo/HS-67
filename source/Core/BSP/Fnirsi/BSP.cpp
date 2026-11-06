@@ -1,12 +1,13 @@
 // BSP mapping functions
 
 #include "BSP.h"
+#include <string.h>
+#include "n32l40x_flash.h"
 #include "n32l40x_gpio.h"
 #include "n32l40x_wwdg.h"
 // #include "BootLogo.h"
 // #include "I2C_Wrapper.hpp"
 #include "Buttons.hpp"
-#include "FnirsiBootLogo.h"
 #include "FreeRTOS.h"
 #include "Pins.h"
 #include "Settings.h"
@@ -201,10 +202,75 @@ void setStatusLED(const enum StatusLED state) {
 }
 
 void setBuzzer(bool on) {
-  // 63 = 50% duty cycle -> too lound and too much current
-  // 20 = 16% duty cycle -> max reasonable
-  static_assert(BUZZER_VOLUME < 20);
-  TIM_SetCmp1(TIM2, on ? BUZZER_VOLUME : 0);
+  // TIM2 runs a 2 kHz PWM with a period of 128; the duty cycle sets the loudness.
+  // 63 (50%) is far too loud and draws too much current, ~19 (15%) is a sensible maximum.
+  const uint16_t volume = getSettingValue(SettingsOptions::BuzzerVolume); // 0..10
+  TIM_SetCmp1(TIM2, (on && volume) ? (uint16_t)(2 + (volume * (BUZZER_MAX_DUTY - 2)) / 10) : 0);
+}
+
+// CH224K level configuration (CFG1 tied low on the board): CFG2/CFG3 =
+//   0/0 -> 9V, 0/1 -> 12V, 1/1 -> 15V, 1/0 -> 20V.
+void applyPDVoltageSetting() {
+  static const uint8_t cfg2[4] = {0, 0, 1, 1};
+  static const uint8_t cfg3[4] = {0, 1, 1, 0};
+  uint16_t             index   = getSettingValue(SettingsOptions::PDVoltage);
+  if (index > 3) {
+    index = 3;
+  }
+  if (cfg2[index]) {
+    GPIO_SetBits(CH224_CFG_Port, CH224_CFG2_Pin);
+  } else {
+    GPIO_ResetBits(CH224_CFG_Port, CH224_CFG2_Pin);
+  }
+  if (cfg3[index]) {
+    GPIO_SetBits(CH224_CFG_Port, CH224_CFG3_Pin);
+  } else {
+    GPIO_ResetBits(CH224_CFG_Port, CH224_CFG3_Pin);
+  }
+}
+
+// ---- Stock settings page (0x0801F800) -------------------------------------------------------
+// The stock firmware keeps its settings block (100 words) here; it also holds the factory tip
+// calibration (words 0x16..0x18) and the bootloader "update requested" flag (word 18). Words
+// 100..102 are unused by stock; we keep a one-time backup of the factory calibration there.
+namespace {
+constexpr uint32_t kStockPage  = 0x0801F800;
+constexpr uint32_t kStockWords = 104;
+uint32_t           stockBlock[kStockWords];
+} // namespace
+
+uint32_t *hs02StockPageBegin() {
+  memcpy(stockBlock, (const void *)kStockPage, sizeof(stockBlock));
+  return stockBlock;
+}
+
+void hs02StockPageCommit() {
+  // Heater off while flash is busy (the CPU stalls on erase and interrupts are masked).
+  setTipPWM(0, false);
+  __disable_irq();
+  FLASH_Unlock();
+  resetWatchdog();
+  FLASH_EraseOnePage(kStockPage);
+  for (uint32_t i = 0; i < kStockWords; i++) {
+    resetWatchdog();
+    if (stockBlock[i] != 0xFFFFFFFF) { // erased flash already reads 0xFFFFFFFF
+      FLASH_ProgramWord(kStockPage + i * 4, stockBlock[i]);
+    }
+  }
+  FLASH_Lock();
+  __enable_irq();
+}
+
+// Reproduces the stock firmware's "Firmware upgrade" menu item (reverse-engineered from
+// APP_HS_02A_V2.1.1): word 18 of the stock settings block is set to 0x87456321 and the MCU
+// resets. The FNIRSI bootloader sees the flag and starts the BOOTLOADER USB drive, exactly as
+// if OK had been held while plugging in. Everything else in the block is preserved.
+void enterFirmwareUpdateMode() {
+  setBuzzer(false);
+  uint32_t *block = hs02StockPageBegin();
+  block[18]       = 0x87456321;
+  hs02StockPageCommit();
+  NVIC_SystemReset();
 }
 
 #ifdef TIP_RESISTANCE_SENSE_Pin
@@ -336,15 +402,35 @@ uint16_t getTipInertia() {
   return TIP_THERMAL_INERTIA;
 }
 
+// Animated boot splash drawn by the colour UI (ui_draw_boot_screen in draw_home_gauge.cpp):
+// the segment bar fills with an ease-in-out curve over ~1.2 s, then holds briefly.
+// Any button press skips it (after ~0.6 s). Replaced the former 25 KB bitmap logo.
+void ui_draw_boot_screen(uint16_t progressX1000);
+
 void showBootLogo(void) {
-  // Blit the colour FNIRSI logo (extracted from stock firmware) straight to the panel,
-  // then reveal it and hold until a button is pressed or the timeout elapses.
-  LCD::drawNativeImage(FNIRSI_LOGO_X, FNIRSI_LOGO_Y, FNIRSI_LOGO_W, FNIRSI_LOGO_H, fnirsiBootLogo);
-  // SPI has drained here, but wait for the panel to scan the new GRAM once before
-  // enabling its backlight; this avoids exposing the previous white scanline.
-  vTaskDelay(TICKS_SECOND / 60);
-  LCD::setBrightness(getSettingValue(SettingsOptions::DisplayBrightness));
-  waitForButtonPressOrTimeout(TICKS_SECOND * 2);
+  constexpr uint8_t    frames     = 24;
+  constexpr TickType_t frameTicks = TICKS_SECOND / 20;
+  LCD::setColorMode(true);
+  for (uint8_t f = 0; f <= frames; f++) {
+    const uint32_t t     = (uint32_t)f * 1000 / frames;           // 0..1000 linear
+    const uint32_t eased = t * t * (3000 - 2 * t) / 1000000;      // smoothstep, 0..1000
+    LCD::clearScreenColor();
+    ui_draw_boot_screen((uint16_t)eased);
+    LCD::refresh(true);
+    if (f == 0) {
+      // Let the panel scan the first frame before the backlight comes on (no white flash).
+      vTaskDelay(TICKS_SECOND / 60);
+      LCD::setBrightness(getSettingValue(SettingsOptions::DisplayBrightness));
+    }
+    // Always poll (keeps the button state machine in sync), but only allow skipping after
+    // ~0.6 s so a press/release still in flight from power-up can't hide the splash.
+    const ButtonState buttons = getButtonState();
+    if (f >= 12 && buttons != BUTTON_NONE) {
+      return;
+    }
+    vTaskDelay(frameTicks);
+  }
+  waitForButtonPressOrTimeout(TICKS_SECOND * 2 / 3);
 }
 
 bool getFUS302IRQLow() { return false; }

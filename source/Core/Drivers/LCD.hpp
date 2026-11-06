@@ -10,6 +10,7 @@
 #pragma once
 #include "configuration.h"
 #ifdef LCD_160x80
+#include "ColorBand.hpp"
 #include "Font.h"
 #include "cmsis_os.h"
 #include <BSP.h>
@@ -57,7 +58,18 @@ public:
   static bool isColorMode() { return colorModeActive; }
   // A colour page owns its four RGB565 entries. Index 0 must remain that page's
   // background because clearScreenColor() represents it with an all-zero buffer.
-  static void setColorPalette(const uint16_t *palette) { activePalette2bpp = palette ? palette : palette2bpp; }
+  static void setColorPalette(const uint16_t *palette) {
+    activePalette2bpp = palette ? palette : palette2bpp;
+    colorBandCount    = 0;
+    notePaletteChange(activePalette2bpp, 4);
+  }
+  // Per-row palettes (see ColorBand.hpp). `bands` must stay valid until the next call;
+  // its contents may be rewritten in place before each call (the change is detected).
+  static void setColorBands(const ColorBand *bands, uint8_t count) {
+    colorBands     = bands;
+    colorBandCount = bands ? count : 0;
+    notePaletteChange(reinterpret_cast<const uint16_t *>(bands), bands ? (count * sizeof(ColorBand)) / 2 : 0);
+  }
 
   // Clears the buffer to palette index 0 (background). Index 0 is chosen so this is a plain
   // memset, same trick as the existing mono clearScreen().
@@ -155,6 +167,25 @@ private:
   // Index 0 must be the background colour (clearScreenColor() relies on an all-zero buffer).
   static const uint16_t  palette2bpp[4];
   static const uint16_t *activePalette2bpp;
+
+  // Optional per-row palettes; when colorBandCount > 0 they override activePalette2bpp.
+  static const ColorBand *colorBands;
+  static uint8_t          colorBandCount;
+  static uint32_t         paletteHash;
+
+  // The refresh is skipped when the framebuffer checksum is unchanged, so a palette-only
+  // change (same pixels, new colours) must invalidate it explicitly.
+  static void notePaletteChange(const uint16_t *words, uint16_t count) {
+    uint32_t hash = 2166136261u;
+    for (uint16_t i = 0; i < count; i++) {
+      hash = (hash ^ words[i]) * 16777619u;
+    }
+    hash ^= colorBandCount;
+    if (hash != paletteHash) {
+      paletteHash     = hash;
+      displayChecksum = ~0U;
+    }
+  }
 };
 
 #endif // LCD_160x80

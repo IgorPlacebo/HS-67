@@ -327,7 +327,15 @@ CPUFLAGS=-mcpu=cortex-m4  \
 				 -mfpu=fpv4-sp-d16 \
          -mfloat-abi=hard
 
-CUSTOM_FORMAT_CMD=$(HOST_PYTHON) ${DEVICE_BSP_DIR}/Scripts/add_header.py BIN
+# FNIRSI MSD bootloader header tag. The original HS-02/HS-02A port (ok2cm/PanKleszcz,
+# tested on HS-02A) writes lowercase "bin"; this fork found HS-02B wants uppercase "BIN".
+# Override with: make model=HS02A FNIRSI_HEADER_TAG=BIN
+ifeq ($(model),HS02B)
+FNIRSI_HEADER_TAG?=BIN
+else
+FNIRSI_HEADER_TAG?=bin
+endif
+CUSTOM_FORMAT_CMD=$(HOST_PYTHON) ${DEVICE_BSP_DIR}/Scripts/add_header.py $(FNIRSI_HEADER_TAG)
 
 SMALL_FONT=default_12x16
 LARGE_FONT=default_24x32

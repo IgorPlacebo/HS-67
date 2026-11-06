@@ -9,8 +9,9 @@ with open(sys.argv[2], 'rb') as input_file, open(sys.argv[2][:-4]+'_firmware.bin
     data = input_file.read()
 
     header = bytearray(0x10)
-    # FNIRSI bootloader requires UPPERCASE 'BIN\x00' (0x42 0x49 0x4E 0x00)
-    tag = sys.argv[1].upper().encode('ASCII')[:3]
+    # Tag is model-specific: 'bin' (HS-02 / HS-02A, original port) or 'BIN' (HS-02B).
+    # The Makefile picks it via FNIRSI_HEADER_TAG; it is written exactly as given.
+    tag = sys.argv[1].encode('ASCII')[:3]
     header[0:8] = struct.pack('<3sBI', tag, 0x00, len(data))
 
     output_file.write(header)

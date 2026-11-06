@@ -130,6 +130,7 @@ public:
   // DISPLAY_CLASS is OLED on mono boards, which has no 2bpp path at all.
   static void setColorMode(bool active) { DISPLAY_CLASS::setColorMode(active); }
   static void setColorPalette(const uint16_t *palette) { DISPLAY_CLASS::setColorPalette(palette); }
+  static void setColorBands(const ColorBand *bands, uint8_t count) { DISPLAY_CLASS::setColorBands(bands, count); }
   static void clearScreenColor() { DISPLAY_CLASS::clearScreenColor(); }
   static void fillRectColor(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t colorIndex) { DISPLAY_CLASS::fillRect2bpp(x, y, w, h, colorIndex); }
   static void drawRingColor(uint8_t cx, uint8_t cy, uint8_t r, uint8_t thickness, uint8_t colorIndex, float startAngle, float endAngle) {

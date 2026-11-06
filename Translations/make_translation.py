@@ -874,6 +874,7 @@ def write_language(
     render_font_block(data, f, compress_font)
 
     f.write(f"\n// ---- {lang_name} ----\n\n")
+    f.write(f'extern const char TranslationLanguageCode[] = "{language_code}";\n\n')
 
     translation_common_text = get_translation_common_text(
         small_font_symbol_conversion_table, large_font_symbol_conversion_table
@@ -954,6 +955,7 @@ def write_languages(
     render_font_block(data, f, compress_font)
 
     f.write(f"\n// ---- {lang_names} ----\n\n")
+    f.write(f'extern const char TranslationLanguageCode[] = "{language_codes[0]}";\n\n')
 
     translation_common_text = get_translation_common_text(
         small_font_symbol_conversion_table, large_font_symbol_conversion_table

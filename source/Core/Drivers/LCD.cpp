@@ -39,7 +39,10 @@ const uint16_t LCD::palette2bpp[4] = {
     0xFBC5, // ember (heating)
     0x45B8, // cool (idle/sleep)
 };
-const uint16_t *LCD::activePalette2bpp = LCD::palette2bpp;
+const uint16_t  *LCD::activePalette2bpp = LCD::palette2bpp;
+const ColorBand *LCD::colorBands        = nullptr;
+uint8_t          LCD::colorBandCount    = 0;
+uint32_t         LCD::paletteHash       = 0;
 
 // ST7735 Commands
 #define ST7735_NOP     0x00
@@ -455,11 +458,21 @@ void LCD::refreshColor() {
   // dark like the menu.
   static uint8_t colRGB[LCD_HEIGHT * 2]; // one column of expanded RGB565, reused every column
   setDrawingWindow(0, 0, LCD_WIDTH, LCD_HEIGHT);
+  const uint8_t bandCount = colorBandCount;
   for (uint16_t x = 0; x < LCD_WIDTH; x++) {
+    // Walk the bands top to bottom; with no bands the whole column uses activePalette2bpp.
+    uint8_t         band    = 0;
+    const uint16_t *palette = bandCount ? colorBands[0].colors : activePalette2bpp;
+    uint8_t         nextY   = (bandCount > 1) ? colorBands[1].yStart : LCD_HEIGHT;
     for (uint16_t y = 0; y < LCD_HEIGHT; y++) {
+      while (y >= nextY) {
+        band++;
+        palette = colorBands[band].colors;
+        nextY   = (band + 1 < bandCount) ? colorBands[band + 1].yStart : LCD_HEIGHT;
+      }
       uint8_t  packed   = activeColorBuffer[y * (LCD_WIDTH / 4) + (x / 4)];
       uint8_t  index    = (packed >> ((x % 4) * 2)) & 0x3;
-      uint16_t rgb      = activePalette2bpp[index]; // True RGB565; panel is non-inverted at runtime.
+      uint16_t rgb      = palette[index]; // True RGB565; panel is non-inverted at runtime.
       colRGB[y * 2]     = (uint8_t)(rgb >> 8);
       colRGB[y * 2 + 1] = (uint8_t)(rgb & 0xFF);
     }

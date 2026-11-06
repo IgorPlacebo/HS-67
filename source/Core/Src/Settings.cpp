@@ -53,6 +53,19 @@ typedef struct {
   const uint16_t defaultValue; // Default vaue after reset
 } SettingConstants;
 
+// Defaults for the HS-02 additions on boards whose configuration.h doesn't define them.
+#ifndef PRESET_TEMP_1
+#define PRESET_TEMP_1 300
+#define PRESET_TEMP_2 330
+#define PRESET_TEMP_3 360
+#endif
+#ifndef DEFAULT_BUZZER_VOLUME
+#define DEFAULT_BUZZER_VOLUME 0
+#endif
+#ifndef DEFAULT_PD_VOLTAGE
+#define DEFAULT_PD_VOLTAGE 3
+#endif
+
 static const SettingConstants settingsConstants[(int)SettingsOptions::SettingsOptionsLength] = {
     //{                   min,                               max,         increment,                      default}
     {            MIN_TEMP_C,                                                            MAX_TEMP_F,                 5,               SOLDERING_TEMP}, // SolderingTemp
@@ -111,6 +124,12 @@ static const SettingConstants settingsConstants[(int)SettingsOptions::SettingsOp
     {                     0,                                                                    12,                 1,                            0}, // HallEffectSleepTime
     {                     0, (tipType_t::TIP_TYPE_MAX - 1) > 0 ? (tipType_t::TIP_TYPE_MAX - 1) : 0,                 1,                            0}, // SolderingTipType
     {                     0,                                                                     1,                 1,                            0}, // ReverseButtonSettings
+    {                   100,                                                            MAX_TEMP_C,                 5,                PRESET_TEMP_1}, // PresetTemp1
+    {                   100,                                                            MAX_TEMP_C,                 5,                PRESET_TEMP_2}, // PresetTemp2
+    {                   100,                                                            MAX_TEMP_C,                 5,                PRESET_TEMP_3}, // PresetTemp3
+    {                     0,                                                                    10,                 1,         DEFAULT_BUZZER_VOLUME}, // BuzzerVolume
+    {                     0,                                                                     3,                 1,           DEFAULT_PD_VOLTAGE}, // PDVoltage
+    {                     0,                                                                     2,                 1,                            0}, // HS02UiLanguage
 };
 static_assert((sizeof(settingsConstants) / sizeof(SettingConstants)) == ((int)SettingsOptions::SettingsOptionsLength));
 
@@ -159,6 +178,15 @@ bool sanitiseSettings() {
     for (int i = systemSettings.length; i < (int)SettingsOptions::SettingsOptionsLength; i++) {
       systemSettings.settingsValues[i] = 0xFFFF; // Ensure its as if it was erased
     }
+#ifdef MODEL_HS02
+    // Upgrading from a build without the HS-02 additions: also adopt the new, FNIRSI-like
+    // defaults for the sleep timeout and the +/- step (the old 50 s sleep felt like the
+    // iron "drops to 150 degrees by itself").
+    if (systemSettings.length < (int)SettingsOptions::PresetTemp1) {
+      systemSettings.settingsValues[(int)SettingsOptions::SleepTime]           = 0xFFFF;
+      systemSettings.settingsValues[(int)SettingsOptions::TempChangeShortStep] = 0xFFFF;
+    }
+#endif
     systemSettings.length = (int)SettingsOptions::SettingsOptionsLength;
   }
   for (int i = 0; i < (int)SettingsOptions::SettingsOptionsLength; i++) {

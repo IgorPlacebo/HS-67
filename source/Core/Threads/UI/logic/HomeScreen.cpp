@@ -2,9 +2,34 @@
 #include "Buttons.hpp"
 #include "OperatingModes.h"
 #include "ui_drawing.hpp"
+#include "utils/Beeper.h"
+#include "utils/Hs02Controls.h"
 #include "utils/OperatingModeUtilities.h"
 
 bool showExitMenuTransition = false;
+
+#if defined(LCD_160x80)
+// HS-02: FNIRSI-style standby. OK = start heating, hold OK (or both +/-) = settings,
+// +/- = change the target (held: repeat). The heater is always off here.
+static OperatingMode handleHomeButtonsHS02(const ButtonState buttons, guiContext *cxt) {
+  cxt->transitionMode = TransitionAnimation::None;
+  switch (buttons) {
+  case BUTTON_OK_SHORT:
+    if (!isTipDisconnected() && !isTipShorted()) {
+      beep(40);
+      return OperatingMode::Soldering;
+    }
+    break;
+  case BUTTON_OK_LONG:
+  case BUTTON_BOTH_LONG:
+    return OperatingMode::ModernMenu;
+  default:
+    hs02StepTarget(buttons);
+    break;
+  }
+  return OperatingMode::HomeScreen;
+}
+#endif
 
 OperatingMode handleHomeButtons(const ButtonState buttons, guiContext *cxt) {
   if (buttons != BUTTON_NONE && cxt->scratch_state.state1 == 0) {
@@ -12,6 +37,9 @@ OperatingMode handleHomeButtons(const ButtonState buttons, guiContext *cxt) {
   } else {
     cxt->scratch_state.state1 = 1;
   }
+#if defined(LCD_160x80)
+  return handleHomeButtonsHS02(buttons, cxt);
+#endif
   switch (buttons) {
   case BUTTON_NONE:
     // Do nothing
@@ -80,6 +108,9 @@ OperatingMode handleHomeButtons(const ButtonState buttons, guiContext *cxt) {
 OperatingMode drawHomeScreen(const ButtonState buttons, guiContext *cxt) {
 
   currentTempTargetDegC       = 0; // ensure tip is off
+#if defined(LCD_160x80)
+  hs02ControlsService();
+#endif
   const uint16_t v            = getInputVoltageX10(getSettingValue(SettingsOptions::VoltageDiv), 0);
   const bool     undervoltage = (v < lookupVoltageLevel());
   uint32_t       tipTemp      = TipThermoModel::getTipInC();

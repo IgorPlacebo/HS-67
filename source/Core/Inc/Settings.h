@@ -77,8 +77,15 @@ enum SettingsOptions {
   HallEffectSleepTime            = 53, // Seconds (/5) timeout to sleep when hall effect over threshold
   SolderingTipType               = 54, // Selecting the type of soldering tip fitted
   ReverseButtonSettings          = 55, // Change the A and B button assigment in Settings menu
+  // HS-02 additions (appended so existing saved settings keep their values)
+  PresetTemp1                    = 56, // Preset temperature 1 (OK cycles presets while soldering)
+  PresetTemp2                    = 57, // Preset temperature 2
+  PresetTemp3                    = 58, // Preset temperature 3
+  BuzzerVolume                   = 59, // 0 = off, 1..10
+  PDVoltage                      = 60, // Requested USB-PD voltage: 0 = 9V, 1 = 12V, 2 = 15V, 3 = 20V
+  HS02UiLanguage                 = 61, // Colour UI language: 0 = auto (firmware build), 1 = Russian, 2 = English
   //
-  SettingsOptionsLength = 56, // End marker
+  SettingsOptionsLength = 62, // End marker
 };
 
 typedef enum {

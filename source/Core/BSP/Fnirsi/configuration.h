@@ -39,7 +39,7 @@
  * How many seconds/minutes we wait until going to sleep/shutdown.
  * Values -> SLEEP_TIME * 10; i.e. 5*10 = 50 Seconds!
  */
-#define SLEEP_TIME    5  // x10 Seconds
+#define SLEEP_TIME    10 // 1..5 = x10 s, 6..15 = (n-5) minutes -> 10 = 5 minutes (FNIRSI-like)
 #define SHUTDOWN_TIME 10 // Minutes
 
 /**
@@ -84,7 +84,8 @@
  * Buzzer (annoying)
  *
  */
-#define BUZZER_VOLUME 0 // Range: 0 - 20
+#define DEFAULT_BUZZER_VOLUME 5 // Settings > System > Sound: 0 = off, 1..10
+#define BUZZER_MAX_DUTY       19 // Compare value at volume 10 (of 128); more is too loud / too much current
 
 /**
  * Button backlight <- ->
@@ -95,7 +96,7 @@
 /**
  * Temp change settings
  */
-#define TEMP_CHANGE_SHORT_STEP     1  // Default temp change short step +1
+#define TEMP_CHANGE_SHORT_STEP     5  // Default temp change step (FNIRSI default: 5)
 #define TEMP_CHANGE_LONG_STEP      10 // Default temp change long step +10
 #define TEMP_CHANGE_SHORT_STEP_MAX 50 // Temp change short step MAX value
 #define TEMP_CHANGE_LONG_STEP_MAX  90 // Temp change long step MAX value
@@ -158,6 +159,10 @@
 
 #define MIN_CALIBRATION_OFFSET 100 // Min value for calibration
 #define SOLDERING_TEMP         320 // Default soldering temp is 320.0 °C
+#define PRESET_TEMP_1          300 // FNIRSI-style presets, OK cycles through them while soldering
+#define PRESET_TEMP_2          330
+#define PRESET_TEMP_3          360
+#define DEFAULT_PD_VOLTAGE     3   // 0 = 9V, 1 = 12V, 2 = 15V, 3 = 20V (CH224K CFG2/CFG3)
 #define MAX_TEMP_C             450 // Max soldering temp selectable °C
 #define MAX_TEMP_F             850 // Max soldering temp selectable °F
 #define MIN_TEMP_C             10  // Min soldering temp selectable °C

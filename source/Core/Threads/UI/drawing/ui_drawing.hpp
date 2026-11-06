@@ -29,6 +29,23 @@ void ui_draw_soldering_profile_advanced(TemperatureType_t tipTemp, TemperatureTy
 void ui_draw_home_gauge_idle(TemperatureType_t tipTemp);
 void ui_draw_home_gauge_soldering(bool boostModeOn);
 void ui_draw_home_gauge_sleep(TemperatureType_t tipTemp);
+// Boot splash in the same style; progressX1000 = 0..1000 drives the segment bar.
+void ui_draw_boot_screen(uint16_t progressX1000);
+// HS-02 colour settings menu. Up to 3 visible rows; `selected` is the row (0..2) with the cursor.
+struct Hs02MenuRow {
+  const char *label;
+  const char *value; // may be nullptr / ""
+  uint8_t     flags; // Hs02MenuRowFlags
+};
+enum Hs02MenuRowFlags : uint8_t {
+  HS02_ROW_SUBMENU = 1, // draw a chevron instead of a value
+};
+void ui_draw_menu(const char *title, uint8_t position, uint8_t count, const Hs02MenuRow *rows, uint8_t rowCount, uint8_t selected, bool editing);
+void ui_draw_menu_confirm(const char *title, const char *line1, const char *line2, const char *hint, bool danger);
+void ui_draw_alert(const char *title, const char *line1, const char *line2, const char *hint, uint32_t accentRgb);
+enum Hs02Warning : uint8_t { HS02_WARN_SETTINGS_RESET, HS02_WARN_NO_ACCEL, HS02_WARN_NO_PD, HS02_WARN_RUNAWAY };
+void ui_draw_warning(uint8_t which);
+void ui_draw_calibration(uint8_t step, TemperatureType_t current, TemperatureType_t setpoint, TemperatureType_t reading, bool ready);
 
 // Temp change
 void ui_draw_temperature_change(void);

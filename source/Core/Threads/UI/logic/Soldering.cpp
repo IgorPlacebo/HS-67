@@ -1,5 +1,7 @@
 
 #include "OperatingModes.h"
+#include "Beeper.h"
+#include "Hs02Controls.h"
 #include "SolderingCommon.h"
 #include "ui_drawing.hpp"
 // State 1 = button locking  (0:unlocked+released, 1:unlocked, 2:locked, 3:locked+released)
@@ -33,7 +35,35 @@ static void adjustSolderingTempDirectly(int16_t stepDelta) {
   saveSettings();
 }
 
+#if defined(LCD_160x80)
+// HS-02: FNIRSI-style working mode. +/- = target (held: repeat), OK = next preset,
+// hold OK or both buttons = stop heating (back to standby). No boost / key lock.
+static OperatingMode handleSolderingButtonsHS02(const ButtonState buttons, guiContext *cxt) {
+  cxt->transitionMode = TransitionAnimation::None;
+  switch (buttons) {
+  case BUTTON_OK_SHORT:
+    hs02NextPreset();
+    cxt->scratch_state.state5 = false; // beep again once the new target is reached
+    break;
+  case BUTTON_OK_LONG:
+  case BUTTON_BOTH:
+  case BUTTON_BOTH_LONG:
+    beep(40);
+    return OperatingMode::HomeScreen;
+  default:
+    if (hs02StepTarget(buttons)) {
+      cxt->scratch_state.state5 = false;
+    }
+    break;
+  }
+  return OperatingMode::Soldering;
+}
+#endif
+
 OperatingMode handleSolderingButtons(const ButtonState buttons, guiContext *cxt) {
+#if defined(LCD_160x80)
+  return handleSolderingButtonsHS02(buttons, cxt);
+#endif
   if (cxt->scratch_state.state1 >= 2) {
     // Buttons are currently locked
     if (buttons == BUTTON_BOTH_LONG) {
@@ -174,8 +204,12 @@ OperatingMode gui_solderingMode(const ButtonState buttons, guiContext *cxt) {
   if (error >= -10 && error <= 10) {
     // converged
     if (!cxt->scratch_state.state5) {
+#if defined(LCD_160x80)
+      beep(150); // "ready" chime, like the stock firmware
+#else
       setBuzzer(true);
       cxt->scratch_state.state3 = xTaskGetTickCount() + TICKS_SECOND / 3;
+#endif
       cxt->scratch_state.state5 = true;
     }
     setStatusLED(LED_HOT);
@@ -189,6 +223,7 @@ OperatingMode gui_solderingMode(const ButtonState buttons, guiContext *cxt) {
 
   // Draw in the screen details
 #if defined(LCD_160x80)
+  hs02ControlsService();
   ui_draw_home_gauge_soldering(cxt->scratch_state.state2);
 #else
   if (getSettingValue(SettingsOptions::DetailedSoldering)) {

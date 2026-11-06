@@ -14,6 +14,8 @@ extern "C" {
 #include "LIS2DH12.hpp"
 #include "MMA8652FC.hpp"
 #include "OperatingModeUtilities.h"
+#include "Beeper.h"
+#include "Hs02Controls.h"
 #include "OperatingModes.h"
 #include "Settings.h"
 #include "TipThermoModel.h"
@@ -57,6 +59,8 @@ static bool isColorScreenMode(OperatingMode mode) {
   case OperatingMode::Soldering:
   case OperatingMode::Sleeping:
   case OperatingMode::Hibernating:
+  case OperatingMode::ModernMenu:
+  case OperatingMode::TipCalibration:
     return true;
   default:
     return false;
@@ -157,6 +161,12 @@ OperatingMode guiHandleDraw(void) {
   case OperatingMode::SettingsMenu:
     newMode = gui_SettingsMenu(buttons, &context);
     break;
+  case OperatingMode::ModernMenu:
+    newMode = gui_modernMenu(buttons, &context);
+    break;
+  case OperatingMode::TipCalibration:
+    newMode = gui_tipCalibration(buttons, &context);
+    break;
   case OperatingMode::InitialisationDone:
     newMode = handle_post_init_state();
     break;
@@ -205,6 +215,9 @@ void guiRenderLoop(void) {
     }
 #endif
     memset(&context.scratch_state, 0, sizeof(context.scratch_state));
+#if defined(LCD_160x80)
+    hs02ControlsFlush(); // don't lose a just-changed target when the screen changes (e.g. sleep)
+#endif
     currentOperatingMode = newMode;
   }
 
@@ -300,6 +313,10 @@ void startGUITask(void const *argument) {
   TickType_t startRender = xTaskGetTickCount();
   for (;;) {
     guiRenderLoop();
+    beeperService();
+#if defined(LCD_160x80)
+    hs02ControlsService(); // deferred save of +/- target changes, whatever screen is shown
+#endif
     resetWatchdog();
     vTaskDelayUntil(&startRender, GUI_FRAME_INTERVAL);
   }

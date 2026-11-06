@@ -39,6 +39,8 @@ enum class OperatingMode {
   TemperatureAdjust=7,  // Set point temperature adjustment
   UsbPDDebug=8,         // USB PD debugging information
   ThermalRunaway=9,     // Thermal Runaway warning state.
+  ModernMenu=15,        // HS-02 colour settings menu (FNIRSI-like: Sleep / Tip / System / Advanced)
+  TipCalibration=16,    // HS-02 3-point tip calibration (150/250/350 C against a thermometer)
 };
 
 enum class TransitionAnimation {
@@ -73,6 +75,8 @@ OperatingMode gui_solderingMode(const ButtonState buttons, guiContext *cxt);    
 OperatingMode gui_solderingTempAdjust(const ButtonState buttons, guiContext *cxt);   // For adjusting the setpoint temperature of the iron
 OperatingMode drawHomeScreen(const ButtonState buttons, guiContext *cxt);            // IDLE / Home screen
 OperatingMode gui_SettingsMenu(const ButtonState buttons, guiContext *cxt);          //
+OperatingMode gui_modernMenu(const ButtonState buttons, guiContext *cxt);            // HS-02 colour settings menu
+OperatingMode gui_tipCalibration(const ButtonState buttons, guiContext *cxt);        // HS-02 tip calibration
 
 OperatingMode gui_solderingProfileMode(const ButtonState buttons, guiContext *cxt); // Profile mode for hot likely-not-so-pointy tool
 OperatingMode performCJCC(const ButtonState buttons, guiContext *cxt);              // Used to calibrate the Cold Junction offset

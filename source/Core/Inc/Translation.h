@@ -172,6 +172,8 @@ struct TranslationIndexTable {
 extern const TranslationIndexTable *Tr;
 
 extern const char *TranslationStrings;
+// ISO-ish code of the language this firmware was built with ("EN", "RU", ...; first one for multi-language builds).
+extern const char TranslationLanguageCode[];
 
 struct TranslationData {
   TranslationIndexTable indices;

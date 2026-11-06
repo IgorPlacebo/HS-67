@@ -4,6 +4,7 @@
  *  Created on: 1 May 2021
  *      Author: Ralim, MrTick
  */
+#include "BSP.h"
 #include "Setup.h"
 #include "TipThermoModel.h"
 #include "Types.h"
@@ -105,6 +106,60 @@ bool hs02GetFactoryTipCal(uint32_t &a140, uint32_t &a240, uint32_t &a340) {
   a240 = adcCount240;
   a340 = adcCount340;
   return factoryCalValid;
+}
+
+// ---- User calibration (Settings > Tip > Calibration) -----------------------------------------
+// Raw stock ADC count x10 for a given IronOS tip uV value (same conversion as below).
+uint32_t hs02TipCountX10FromuV(uint32_t tipuV) { return (tipuV * ((OP_AMP_GAIN_STAGE * 4096) / 33)) / 10000; }
+
+namespace {
+constexpr uint8_t  kCalWord[3]   = {0x16, 0x17, 0x18};
+constexpr uint32_t kCalBias[3]   = {stockCalBias140, stockCalBias240, stockCalBias340};
+constexpr uint8_t  kBackupWord   = 100; // words 100..102: one-time backup of the factory words
+constexpr uint32_t kPlaceholder  = 0x8000;
+
+void writeCalWords(uint32_t *block, const uint32_t low16[3]) {
+  for (uint8_t i = 0; i < 3; i++) {
+    block[kCalWord[i]] = (block[kCalWord[i]] & 0xFFFF0000) | (low16[i] & 0xFFFF);
+  }
+  if (block[0] == 0xFFFFFFFF) {
+    block[0] = 20; // stock settings-version marker, so the page is treated as written
+  }
+}
+} // namespace
+
+// Stores a new 3-point calibration in the stock format (also used by the stock firmware).
+// counts = raw 12-bit ADC counts at 140/240/340 C. Returns false if they look implausible.
+bool hs02WriteTipCal(uint32_t c140, uint32_t c240, uint32_t c340) {
+  if (c140 < 50 || c240 <= c140 || c340 <= c240 || c340 > 1500) {
+    return false;
+  }
+  uint32_t *block = hs02StockPageBegin();
+  if (block[kBackupWord] == 0xFFFFFFFF && block[0] != 0xFFFFFFFF) {
+    for (uint8_t i = 0; i < 3; i++) {
+      block[kBackupWord + i] = block[kCalWord[i]]; // keep the factory words once
+    }
+  }
+  const uint32_t words[3] = {c140 + kCalBias[0], c240 + kCalBias[1], c340 + kCalBias[2]};
+  writeCalWords(block, words);
+  hs02StockPageCommit();
+  factoryCalChecked = false; // reload on next conversion
+  factoryCalValid   = false;
+  return true;
+}
+
+// Restores the factory calibration backed up by the first hs02WriteTipCal(); without a backup
+// it writes the "never calibrated" placeholders, i.e. the built-in measured curve is used.
+void hs02ResetTipCal() {
+  uint32_t *block = hs02StockPageBegin();
+  uint32_t  words[3];
+  for (uint8_t i = 0; i < 3; i++) {
+    words[i] = (block[kBackupWord + i] != 0xFFFFFFFF) ? block[kBackupWord + i] : kPlaceholder;
+  }
+  writeCalWords(block, words);
+  hs02StockPageCommit();
+  factoryCalChecked = false;
+  factoryCalValid   = false;
 }
 
 TemperatureType_t TipThermoModel::convertuVToDegCx10(uint32_t tipuVDelta) {
