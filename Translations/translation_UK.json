@@ -1,0 +1,351 @@
+{
+  "languageCode": "UK",
+  "languageLocalName": "Українська",
+  "tempUnitFahrenheit": false,
+  "messagesWarn": {
+    "CalibrationDone": {
+      "message": "КХС\nвідкалібровано!"
+    },
+    "ResetOKMessage": {
+      "message": "Скид. OK"
+    },
+    "SettingsResetMessage": {
+      "message": "Налаштування\nскинуті!"
+    },
+    "NoAccelerometerMessage": {
+      "message": "Акселерометр\nне виявлено!"
+    },
+    "NoPowerDeliveryMessage": {
+      "message": "USB-PD IC\nне виявлено!"
+    },
+    "LockingKeysString": {
+      "message": "ЗАБЛОК."
+    },
+    "UnlockingKeysString": {
+      "message": "РОЗБЛОК."
+    },
+    "WarningKeysLockedString": {
+      "message": "!ЗАБЛОК!"
+    },
+    "WarningThermalRunaway": {
+      "message": "Некерований\nрозігрів"
+    },
+    "WarningTipShorted": {
+      "message": "!Жало закорочено!"
+    },
+    "SettingsCalibrationWarning": {
+      "message": "Під час наступного завантаження переконайтеся, що жало і ручка мають кімнатну температуру!"
+    },
+    "CJCCalibrating": {
+      "message": "калібрування\n"
+    },
+    "SettingsResetWarning": {
+      "message": "Ви дійсно хочете скинути налаштування до значень за замовчуванням? (A=Так, В=Ні)"
+    },
+    "UVLOWarningString": {
+      "message": "АККУМ--"
+    },
+    "UndervoltageString": {
+      "message": "Низька\n"
+    },
+    "InputVoltageString": {
+      "message": "напруга \n"
+    },
+    "SleepingAdvancedString": {
+      "message": "Сон...\n"
+    },
+    "SleepingTipAdvancedString": {
+      "message": "Жало: \n"
+    },
+    "ProfilePreheatString": {
+      "message": "Попередній\nрозігрів"
+    },
+    "ProfileCooldownString": {
+      "message": "Охолодження\n"
+    },
+    "DeviceFailedValidationWarning": {
+      "message": "Вірогідно ваш пристрій підробний!"
+    },
+    "TooHotToStartProfileWarning": {
+      "message": "Занадто гараче для\nзміни профілів"
+    }
+  },
+  "characters": {
+    "SettingRightChar": "П",
+    "SettingLeftChar": "Л",
+    "SettingAutoChar": "A",
+    "SettingSlowChar": "Н",
+    "SettingMediumChar": "С",
+    "SettingFastChar": "М",
+    "SettingStartSolderingChar": "П",
+    "SettingStartSleepChar": "С",
+    "SettingStartSleepOffChar": "К",
+    "SettingLockBoostChar": "Т",
+    "SettingLockFullChar": "П"
+  },
+  "menuGroups": {
+    "PowerMenu": {
+      "displayText": "Параметри\nживлення",
+      "description": ""
+    },
+    "SolderingMenu": {
+      "displayText": "Параметри\nпайки",
+      "description": ""
+    },
+    "PowerSavingMenu": {
+      "displayText": "Режим сну\n",
+      "description": ""
+    },
+    "UIMenu": {
+      "displayText": "Параметри\nінтерфейсу",
+      "description": ""
+    },
+    "AdvancedMenu": {
+      "displayText": "Додаткові\nпараметри",
+      "description": ""
+    }
+  },
+  "menuValues": {
+    "USBPDModeDefault": {
+      "displayText": "Режим\nЗамовчуванню"
+    },
+    "USBPDModeNoDynamic": {
+      "displayText": "Без\nДинамічного"
+    },
+    "USBPDModeSafe": {
+      "displayText": "Безпечний\nРежим"
+    },
+    "TipTypeAuto": {
+      "displayText": "Авто\nВизначення"
+    },
+    "TipTypeT12Long": {
+      "displayText": "TS100\nДовге"
+    },
+    "TipTypeT12Short": {
+      "displayText": "Pine\nКоротке"
+    },
+    "TipTypeT12PTS": {
+      "displayText": "PTS\n200"
+    },
+    "TipTypeTS80": {
+      "displayText": "TS80\n"
+    },
+    "TipTypeJBCC210": {
+      "displayText": "JBC\nC210"
+    }
+  },
+  "menuOptions": {
+    "DCInCutoff": {
+      "displayText": "Джерело живл.\n(DC / Акум)",
+      "description": ""
+    },
+    "MinVolCell": {
+      "displayText": "Мін. напруга\nна комірку",
+      "description": ""
+    },
+    "QCMaxVoltage": {
+      "displayText": "Макс. потужн.\nживлення (Вт)",
+      "description": ""
+    },
+    "PDNegTimeout": {
+      "displayText": "Затримка PD/QC\nпротоколу",
+      "description": ""
+    },
+    "USBPDMode": {
+      "displayText": "Режим USB-PD\n(PPS/EPR)",
+      "description": ""
+    },
+    "BoostTemperature": {
+      "displayText": "Температура\nТурбо (Boost)",
+      "description": ""
+    },
+    "AutoStart": {
+      "displayText": "Автозапуск\nпри живленні",
+      "description": ""
+    },
+    "TempChangeShortStep": {
+      "displayText": "Крок темп.\nкоротким",
+      "description": ""
+    },
+    "TempChangeLongStep": {
+      "displayText": "Крок темп.\nутриманням",
+      "description": ""
+    },
+    "LockingMode": {
+      "displayText": "Блок. кнопок\nпри пайці",
+      "description": ""
+    },
+    "ProfilePhases": {
+      "displayText": "Кільк. етапів\nпрофілю",
+      "description": ""
+    },
+    "ProfilePreheatTemp": {
+      "displayText": "Темп. поп.\nрозігріву",
+      "description": ""
+    },
+    "ProfilePreheatSpeed": {
+      "displayText": "Швидк. поп.\nрозігріву",
+      "description": ""
+    },
+    "ProfilePhase1Temp": {
+      "displayText": "Етап 1: Темп.\nрозігріву",
+      "description": ""
+    },
+    "ProfilePhase1Duration": {
+      "displayText": "Етап 1: Час\nтривалості",
+      "description": ""
+    },
+    "ProfilePhase2Temp": {
+      "displayText": "Етап 2: Темп.\nрозігріву",
+      "description": ""
+    },
+    "ProfilePhase2Duration": {
+      "displayText": "Етап 2: Час\nтривалості",
+      "description": ""
+    },
+    "ProfilePhase3Temp": {
+      "displayText": "Етап 3: Темп.\nрозігріву",
+      "description": ""
+    },
+    "ProfilePhase3Duration": {
+      "displayText": "Етап 3: Час\nтривалості",
+      "description": ""
+    },
+    "ProfilePhase4Temp": {
+      "displayText": "Етап 4: Темп.\nрозігріву",
+      "description": ""
+    },
+    "ProfilePhase4Duration": {
+      "displayText": "Етап 4: Час\nтривалості",
+      "description": ""
+    },
+    "ProfilePhase5Temp": {
+      "displayText": "Етап 5: Темп.\nрозігріву",
+      "description": ""
+    },
+    "ProfilePhase5Duration": {
+      "displayText": "Етап 5: Час\nтривалості",
+      "description": ""
+    },
+    "ProfileCooldownSpeed": {
+      "displayText": "Швидкість\nохолодження",
+      "description": ""
+    },
+    "MotionSensitivity": {
+      "displayText": "Чутливість\nдатчика руху",
+      "description": ""
+    },
+    "SleepTemperature": {
+      "displayText": "Температура\nрежиму сну",
+      "description": ""
+    },
+    "SleepTimeout": {
+      "displayText": "Тайм-аут\nрежиму сну",
+      "description": ""
+    },
+    "ShutdownTimeout": {
+      "displayText": "Тайм-аут\nавтовимкнення",
+      "description": ""
+    },
+    "HallEffSensitivity": {
+      "displayText": "Чутливість\nдатчика Холла",
+      "description": ""
+    },
+    "HallEffSleepTimeout": {
+      "displayText": "Тайм-аут сну\nдатчика Холла",
+      "description": ""
+    },
+    "TemperatureUnit": {
+      "displayText": "Одиниця темп.\n(°C / °F)",
+      "description": ""
+    },
+    "DisplayRotation": {
+      "displayText": "Орієнтація\nдисплея",
+      "description": ""
+    },
+    "CooldownBlink": {
+      "displayText": "Блимання темп.\nохолодження",
+      "description": ""
+    },
+    "ScrollingSpeed": {
+      "displayText": "Швидкість\nпрокрутки",
+      "description": ""
+    },
+    "ReverseButtonTempChange": {
+      "displayText": "Реверс +/-\nтемператури",
+      "description": ""
+    },
+    "ReverseButtonSettings": {
+      "displayText": "Реверс А/В\nнавігації",
+      "description": ""
+    },
+    "AnimSpeed": {
+      "displayText": "Швидкість\nанімації",
+      "description": ""
+    },
+    "AnimLoop": {
+      "displayText": "Циклічність\nанімацій",
+      "description": ""
+    },
+    "Brightness": {
+      "displayText": "Яскравість\nдисплея",
+      "description": ""
+    },
+    "ColourInversion": {
+      "displayText": "Інверсія\nдисплея",
+      "description": ""
+    },
+    "LOGOTime": {
+      "displayText": "Час показу\nлоготипу",
+      "description": ""
+    },
+    "AdvancedIdle": {
+      "displayText": "Деталі екрану\nочікування",
+      "description": ""
+    },
+    "AdvancedSoldering": {
+      "displayText": "Деталі екрану\nпайки",
+      "description": ""
+    },
+    "BluetoothLE": {
+      "displayText": "Модуль BLE\n(Bluetooth)",
+      "description": ""
+    },
+    "PowerLimit": {
+      "displayText": "Максимальна\nпотужність",
+      "description": ""
+    },
+    "CalibrateCJC": {
+      "displayText": "Калібрування\nКХС (CJC)",
+      "description": ""
+    },
+    "VoltageCalibration": {
+      "displayText": "Калібрування\nнапруги",
+      "description": ""
+    },
+    "PowerPulsePower": {
+      "displayText": "Потужність\nімпульсу PB",
+      "description": ""
+    },
+    "PowerPulseWait": {
+      "displayText": "Пауза між\nімпульс. PB",
+      "description": ""
+    },
+    "PowerPulseDuration": {
+      "displayText": "Тривалість\nімпульсу PB",
+      "description": ""
+    },
+    "SettingsReset": {
+      "displayText": "Скидання меню\nдо заводських",
+      "description": ""
+    },
+    "LanguageSwitch": {
+      "displayText": "Мова меню:\nUK Українська",
+      "description": ""
+    },
+    "SolderingTipType": {
+      "displayText": "Тип паяльного\nжала",
+      "description": ""
+    }
+  }
+}

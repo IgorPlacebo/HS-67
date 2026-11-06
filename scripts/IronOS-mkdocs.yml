@@ -1,0 +1,65 @@
+# Project info
+site_name: IronOS — FNIRSI HS-02B
+site_url: https://mymdo.github.io/IronOS-FNIRSI-HS-02B/
+site_description: "IronOS fork for FNIRSI HS-02B (C210) soldering iron"
+
+# Repo config
+repo_url: https://github.com/MYMDO/IronOS-FNIRSI-HS-02B/
+
+# Dir & location config
+docs_dir: ../Documentation
+edit_uri: edit/dev/Documentation/
+
+# Theme and config
+theme:
+  name: readthedocs
+  highlightsjs: true
+  hljs_languages:
+    - yaml
+
+# Navigation structure
+nav:
+  - Home: index.md
+  - Getting Started HS-02B: GettingStarted_HS02B.md
+  - Getting Started (upstream): GettingStarted.md
+  - Flashing the firmware:
+      - HS-02B (this fork): Flashing/HS02B.md
+      - MHP30: Flashing/MHP30.md
+      - Pinecil V1: Flashing/Pinecil V1.md
+      - Pinecil V2: Flashing/Pinecil V2.md
+      - TS80(P): Flashing/TS80(P).md
+      - TS100: Flashing/TS100.md
+  - Operation:
+      - Main Menu: Menu.md
+      - Settings: Settings.md
+      - Debug Menu: DebugMenu.md
+      - Power: Power.md
+      - Temperature: Temperature.md
+  - Startup Logo: Logo.md
+  - Hardware:
+      - Bluetooth (Pinecil V2): Bluetooth.md
+      - Debugging USB-PD: DebuggingPD.md
+      - Hall Sensor (Pinecil): HallSensor.md
+      - Hardware Notes: Hardware.md
+      - Known Hardware Issues: HardwareIssues.md
+      - New Hardware Requirements: PortingToNewDevice.md
+      - Power sources: PowerSources.md
+      - Troubleshooting: Troubleshooting.md
+      - WS2812B RGB Modding (Pinecil V2): WS2812BModding.md
+  - Translations: Translation.md
+  - Development: Development.md
+  - Changelog: History.md
+
+# Plugins
+plugins:
+  - search
+  - autolinks
+  - awesome-pages
+  - git-revision-date
+
+# Markdown Extensions
+markdown_extensions:
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:pymdownx.emoji.twemoji
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
