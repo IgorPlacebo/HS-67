@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/yakory777/HS-02-ModernUI/actions/workflows/build.yml"><img src="https://github.com/yakory777/HS-02-ModernUI/actions/workflows/build.yml/badge.svg" alt="Build"></a>
-  <a href="https://github.com/yakory777/HS-02-ModernUI/releases/latest"><img src="https://img.shields.io/github/v/release/yakory777/HS-02-ModernUI?label=firmware" alt="Release"></a>
+  <a href="https://github.com/yakory777/HS-02A/actions/workflows/build.yml"><img src="https://github.com/yakory777/HS-02A/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/yakory777/HS-02A/releases/latest"><img src="https://img.shields.io/github/v/release/yakory777/HS-02A?label=firmware" alt="Release"></a>
   <img src="https://img.shields.io/badge/devices-HS--02A%20%7C%20HS--02B-ff9f0a" alt="Devices">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-30d158" alt="License"></a>
 </p>
@@ -89,7 +89,7 @@ Defaults: presets 300 / 330 / 360 °C, step 5 °C, sleep after 5 min at 150 °C,
 
 ## Flashing
 
-1. Download the firmware from **[Releases](https://github.com/yakory777/HS-02-ModernUI/releases/latest)**:
+1. Download the firmware from **[Releases](https://github.com/yakory777/HS-02A/releases/latest)**:
 
    | Your iron | Russian | English |
    | :-- | :-- | :-- |
