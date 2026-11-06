@@ -14,7 +14,10 @@
 #include "Setup.h"
 #include "TipThermoModel.h"
 #include "history.hpp"
+<<<<<<< HEAD
 #include "power.hpp"
+=======
+>>>>>>> 035614edb3e0ee89d05997b74638068d3276b203
 #include "task.h"
 // n32l40x.h defines LCD as a peripheral pointer macro; free the name for the LCD class.
 #undef LCD
@@ -147,6 +150,7 @@ bool          isTipDisconnected() {
   }
 
   const uint16_t raw = getTipRawTemp(0);
+<<<<<<< HEAD
   if (raw > 31500) {
     return true; // amplifier saturated: open thermocouple / no cartridge
   }
@@ -176,6 +180,14 @@ bool          isTipDisconnected() {
   }
   lowSince     = 0;
   latchedUntil = now;
+=======
+  if (raw == 0) {
+    return false; // Filter still warming up on initial boot
+  }
+  if (raw < 30 || raw > 31500) {
+    return true;
+  }
+>>>>>>> 035614edb3e0ee89d05997b74638068d3276b203
   uint16_t tipDisconnectedThres = TipThermoModel::getTipMaxInC() - 50;
   uint32_t tipTemp              = TipThermoModel::getTipInC();
   return tipTemp > tipDisconnectedThres;
@@ -408,9 +420,20 @@ uint8_t getTipResistanceX10() {
 }
 
 bool isTipShorted() {
+<<<<<<< HEAD
   // Only the real heater-short detector (tip resistance sensing, when built in) may report a
   // short. A ~0 thermocouple reading is simply a cold tip (or 5 V supply), not a short circuit.
   return tipShorted;
+=======
+  if (tipShorted) {
+    return true;
+  }
+  // Cold thermocouple short check: if tip is connected but raw ADC is near zero (< 5)
+  if (!isTipDisconnected() && getTipRawTemp(0) < 5) {
+    return true;
+  }
+  return false;
+>>>>>>> 035614edb3e0ee89d05997b74638068d3276b203
 }
 uint16_t getTipThermalMass() {
   // TODO: IMPLEMENT

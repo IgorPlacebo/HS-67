@@ -392,12 +392,15 @@ const char *targetCaption(uint16_t target, char *buf) {
 } // namespace
 
 void ui_draw_home_gauge_idle(TemperatureType_t tipTemp) {
+<<<<<<< HEAD
   // Below 9 V (USB 5 V, a non-PD charger or cable) the tip sensing is unpowered and the iron
   // can't heat properly: say so plainly instead of showing misleading tip readings.
   if (getInputVoltageX10(getSettingValue(SettingsOptions::VoltageDiv), 0) < 90) {
     ui_draw_warning_undervoltage_idle();
     return;
   }
+=======
+>>>>>>> 035614edb3e0ee89d05997b74638068d3276b203
   if (drawTipFault()) {
     return;
   }

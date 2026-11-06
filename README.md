@@ -109,6 +109,7 @@ Defaults: presets 300 / 330 / 360 °C, step 5 °C, sleep after 5 min at 150 °C,
 > [!TIP]
 > On **Linux** the FNIRSI bootloader mishandles write caching: copy the file **twice** with `sync` after each copy, or use `scripts/flash_hs02b_linux.sh <file.bin>`. On Windows, if nothing happens, simply copy the file again.
 
+<<<<<<< HEAD
 See also [Going back to the stock firmware](#going-back-to-the-stock-firmware).
 
 ## Going back to the stock firmware
@@ -127,6 +128,9 @@ The FNIRSI bootloader is never modified, so you can return to the official firmw
 4. **Copy the official `.bin`** to the **BOOTLOADER** drive (keep its original file name) and wait for the restart.
 
 What survives: IronOS keeps its own settings in a separate flash page, so the stock settings stay as they were. If you used *Tip → Calibration*, run *Tip → Reset calibration* **before** going back to restore the factory calibration values (the stock firmware would otherwise use your calibration, which is also fine).
+=======
+**Going back to stock**: flash the official `APP_HS_02A_*.bin` / `APP_HS_02B_*.bin` the same way. IronOS keeps its settings in a separate flash page, so the stock settings and calibration survive.
+>>>>>>> 035614edb3e0ee89d05997b74638068d3276b203
 
 ## Tip calibration
 

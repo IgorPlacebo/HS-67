@@ -2,6 +2,7 @@
 
 All notable changes of **HS-02 Modern UI** (on top of [MYMDO/IronOS-FNIRSI-HS-02B](https://github.com/MYMDO/IronOS-FNIRSI-HS-02B)).
 
+<<<<<<< HEAD
 ## [1.0.1] — 2026-11-06
 
 ### Fixed
@@ -12,6 +13,8 @@ All notable changes of **HS-02 Modern UI** (on top of [MYMDO/IronOS-FNIRSI-HS-02
 - Standby shows a clear "Low input voltage" alert below 9 V (5 V USB / non-PD supply) instead of
   misleading tip states.
 
+=======
+>>>>>>> 035614edb3e0ee89d05997b74638068d3276b203
 ## [1.0.0] — 2026-11-06
 
 ### Added
