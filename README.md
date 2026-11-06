@@ -115,7 +115,9 @@ See also [Going back to the stock firmware](#going-back-to-the-stock-firmware).
 
 The FNIRSI bootloader is never modified, so you can return to the official firmware at any time.
 
-1. **Get the official file** for your model (`APP_HS_02A_*.bin` or `APP_HS_02B_*.bin`) from FNIRSI: the support / download section of [fnirsi.com](https://www.fnirsi.com) or by e-mail at support@fnirsi.com. It is not included here because it is FNIRSI's copyrighted software (© FNIRSI, all rights reserved).
+1. **Get the official file** for your model:
+   - **HS-02A**: [`Stock bin/APP_HS_02A_V2.1.1_260112.bin`](Stock%20bin/) in this repository (with FNIRSI's original [`README.txt`](Stock%20bin/README.txt)). It is FNIRSI's software (© FNIRSI, all rights reserved), kept here only so you can roll back.
+   - **HS-02B** or a newer version: from FNIRSI, via the support / download section of [fnirsi.com](https://www.fnirsi.com) or support@fnirsi.com.
 2. **Check it** (optional, recommended): the known HS-02A file is
 
    | File | Size | SHA-256 |
