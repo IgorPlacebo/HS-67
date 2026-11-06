@@ -138,7 +138,7 @@ make -C source/ clean check-style
 
 Шлях без змін коду для точності ±3 °C: прошийте сток → відкалібруйте за термометром жала
 на екрані 150/250/350 °C → перепрошийте IronOS (значення підхопляться автоматично).
-Деталі — `TODO.md`, `CLAUDE.md`.
+Деталі — `TODO.md`, `DEVELOPMENT.md`.
 
 ## Керування (3 кнопки HS-02B)
 
@@ -157,7 +157,7 @@ make -C source/ clean check-style
 * [Getting Started (HS-02B notes)](Documentation/GettingStarted_HS02B.md)
 * [Flashing HS-02B](Documentation/Flashing/HS02B.md)
 * [Hardware notes](Documentation/Hardware.md) (+ [Port BSP README](source/Core/BSP/Fnirsi/README.md))
-* [Історія/ TODO](TODO.md) · [Нотатки розробника](CLAUDE.md)
+* [Історія/ TODO](TODO.md) · [Нотатки розробника](DEVELOPMENT.md)
 * Решта `Documentation/*.md` — апстрим IronOS (Pinecil/TS100/…), застосовна частково.
 
 ## Ліцензія

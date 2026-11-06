@@ -254,7 +254,7 @@ Makefile выбирает метку по модели (`FNIRSI_HEADER_TAG`). К
 | `tools/hs02-ui-fonts/` | генератор шрифтов (Inter, SIL OFL) |
 | `tools/hs02-wasm-preview/` | превью интерфейса и рендер скриншотов |
 
-Заметки разработчика (факты о железе, подводные камни): [`CLAUDE.md`](CLAUDE.md). История изменений: [`CHANGELOG.md`](CHANGELOG.md).
+Заметки разработчика (факты о железе, подводные камни): [`DEVELOPMENT.md`](DEVELOPMENT.md). История изменений: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Планы
 

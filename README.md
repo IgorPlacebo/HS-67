@@ -219,7 +219,7 @@ The CH224K sink is configured by the MCU through CFG2/CFG3 (PB7/PB6), with CFG1 
 | `tools/hs02-ui-fonts/` | font generator (Inter, SIL OFL) |
 | `tools/hs02-wasm-preview/` | UI preview + screenshot renderer |
 
-Developer notes (hardware facts, gotchas): [`CLAUDE.md`](CLAUDE.md). Changes: [`CHANGELOG.md`](CHANGELOG.md).
+Developer notes (hardware facts, gotchas): [`DEVELOPMENT.md`](DEVELOPMENT.md). Changes: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Roadmap
 

@@ -40,7 +40,7 @@ Goal: bring the ~+17°C residual down to within ±3°C. Either path works:
   afterward auto-detects and adopts them (`ThermoModel.cpp`) — the debug menu's
   "Tip Cal" page flips from "Unused 26uV/C" to "In Use" once it takes effect.
 - **Path B (better UX)**: ✅ done — *Settings → Tip → Calibration* writes the
-  same stock page format (see CLAUDE.md, "HS-02 Modern UI layer").
+  same stock page format (see DEVELOPMENT.md, "HS-02 Modern UI layer").
 
 Verify by redoing the solder-melting-point test: after calibration, Sn45/Pb55
 should cut around a displayed ~183°C and fully melt around ~227°C.
@@ -50,7 +50,7 @@ should cut around a displayed ~183°C and fully melt around ~227°C.
 Measure the feedback resistor on the AD8552 temperature channel with a
 multimeter: 48K (gain 49) or 56K (gain 57)? The KiCad-redrawn schematic shows
 both values and they may have been mixed up between the two amp channels.
-Update the CLAUDE.md hardware section once measured. (Doesn't affect
+Update the DEVELOPMENT.md hardware section once measured. (Doesn't affect
 measurement accuracy — the gain constant cancels out in both temperature-model
 code paths; this is purely archaeological.)
 

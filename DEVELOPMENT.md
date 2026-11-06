@@ -1,4 +1,4 @@
-# CLAUDE.md — FNIRSI HS-02B port of IronOS
+# DEVELOPMENT.md — FNIRSI HS-02B port of IronOS
 
 This repo ([MYMDO/IronOS-FNIRSI-HS-02B](https://github.com/MYMDO/IronOS-FNIRSI-HS-02B))
 is a fork of [IronOS](https://github.com/Ralim/IronOS) targeting the
