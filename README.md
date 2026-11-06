@@ -1,169 +1,224 @@
-# IronOS — FNIRSI HS-02B
+<p align="center"><img src="docs/images/banner-en.png" width="820" alt="HS-02 Modern UI"></p>
 
-IronOS-порт для паяльника **FNIRSI HS-02B** (картриджі **C210**, мікрожала).
+<p align="center">
+  <b>English</b> · <a href="README.ru.md">Русский</a>
+</p>
 
-Репозиторій: <https://github.com/MYMDO/IronOS-FNIRSI-HS-02B>
+<p align="center">
+  <a href="https://github.com/yakory777/HS-02-ModernUI/actions/workflows/build.yml"><img src="https://github.com/yakory777/HS-02-ModernUI/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/yakory777/HS-02-ModernUI/releases/latest"><img src="https://img.shields.io/github/v/release/yakory777/HS-02-ModernUI?label=firmware" alt="Release"></a>
+  <img src="https://img.shields.io/badge/devices-HS--02A%20%7C%20HS--02B-ff9f0a" alt="Devices">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-30d158" alt="License"></a>
+</p>
 
-Форк проєктів:
+# HS-02 Modern UI
 
-* [Ralim — IronOS](https://github.com/Ralim/IronOS) (апстрим)
-* [PanKleszcz — IronOS](https://github.com/PanKleszcz/IronOS) (`fnirsi_hs02` порт)
-* [ok2cm — IronOS](https://github.com/ok2cm/IronOS) (кольоровий UI 160×80, PID, boot logo)
+A custom [IronOS](https://github.com/Ralim/IronOS) firmware for the **FNIRSI HS-02A** (C245 tips) and **HS-02B** (C210 tips) smart soldering irons, with a redesigned colour interface in the spirit of iOS: a black screen, a coloured status pill, big readable numbers and a segmented progress bar. Controls, menu layout and the firmware-update entry follow the stock FNIRSI firmware, so it feels familiar from the first minute.
 
-> Статус: HS-02B збирається як окрема модель `HS02B` (`source/Makefile`: `ALL_FNIRSI_MODELS=HS02 HS02A HS02B`).
-> HS-02 / HS-02A збережено для сумісності, але вся документація цього репозиторію орієнтована саме на **HS-02B**.
+**What you get**
 
-## Відмінність HS-02B від HS-02 / HS-02A
+- 🎨 **A new colour UI** for every everyday screen: standby, heating, ready, cooling, sleep, settings, calibration and warnings, drawn with the Inter typeface and two-level anti-aliasing.
+- 🕹️ **FNIRSI-style controls**: OK starts heating, +/− change the target (held: accelerating), OK cycles three presets, hold OK to stop or open the settings.
+- ⚙️ **Clear settings menu**: Sleep / Tip / System / Advanced, in English or Russian (switchable at any time), with live preview of brightness and sound.
+- 🌡️ **3-point tip calibration** (150 / 250 / 350 °C) against a tip thermometer, stored in the stock format, with the factory values kept for a one-click reset.
+- 🔊 **Buzzer** with adjustable volume: a chime when the tip is ready, clicks for presets and start/stop.
+- 🔌 **USB-PD voltage** selectable (9 / 12 / 15 / 20 V) through the CH224K, like the stock firmware.
+- ⬆️ **Firmware update from the menu**, using the same bootloader flag as the stock firmware (no button juggling).
+- 🛡️ Proper IronOS PID control, thermal-runaway protection, motion sleep and auto power-off underneath.
 
-| Параметр | HS-02 / HS-02A | **HS-02B (цей репо)** |
-| :-- | :-- | :-- |
-| Картридж | C245 (~2.5 Ом) | **C210 (2.5–2.7 Ом, номінал 2.6 Ом)** |
-| `TIP_RESISTANCE` | 25 | **26** |
-| PID | KP=55, KI=700, KD=6000 | **KP=40, KI=700, KD=4500** |
-| `TIP_PID_INTEGRAL_LIMIT_SCALE` | 30 | **30** |
-| Ліміт потужності | 60 Вт за замовч., макс. 100 Вт | **60 Вт за замовч., макс. 100 Вт** |
-| Модель збірки | `model=HS02` / `model=HS02A` | **`model=HS02B`** |
-| Файл прошивки | `HS02A_EN_firmware.bin` | **`HS02B_EN_firmware.bin`** |
+> [!WARNING]
+> This is unofficial firmware for a device that heats to 450 °C. It is provided as-is, without warranty. The FNIRSI bootloader is never touched, so you can always go back to the stock firmware (see [Flashing](#flashing)).
 
-Решта заліза спільна для всієї лінійки HS-02 (див. [Hardware](#апаратна-платформа-hs-02b)).
+## Screens
 
-## Апаратна платформа HS-02B
+Every image below is rendered by the **real firmware drawing code** (see [Screenshots](#regenerating-the-screenshots)), not mocked up.
 
-Факти з `source/Core/BSP/Fnirsi/` (схема + реверс стокової прошивки):
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/en/standby.png" width="360"><br><sub><b>Standby</b>: heater off, target and preset on the right</sub></td>
+    <td align="center"><img src="docs/images/en/heating.png" width="360"><br><sub><b>Heating</b>: the bar shows progress to the target</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/en/ready.png" width="360"><br><sub><b>Ready</b>: a chime, and the bar becomes the heater load</sub></td>
+    <td align="center"><img src="docs/images/en/cooling.png" width="360"><br><sub><b>Cooling</b>: the target was lowered</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/en/standby_hot.png" width="360"><br><sub><b>Hot!</b>: heater off but the tip is above 50 °C (blinks)</sub></td>
+    <td align="center"><img src="docs/images/en/sleep.png" width="360"><br><sub><b>Sleep</b>: holds the sleep temperature until you move the iron</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/en/menu_root.png" width="360"><br><sub><b>Settings</b>: Sleep / Tip / System / Advanced</sub></td>
+    <td align="center"><img src="docs/images/en/menu_edit.png" width="360"><br><sub><b>Editing a value</b>: the accent capsule</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/en/calib_ready.png" width="360"><br><sub><b>Calibration</b>: enter the thermometer reading</sub></td>
+    <td align="center"><img src="docs/images/en/warn_runaway.png" width="360"><br><sub><b>Safety alerts</b>: thermal runaway, low voltage, …</sub></td>
+  </tr>
+</table>
 
-* **MCU:** Nation **N32L403** (Cortex-M4, 64 МГц, STM32F1-сумісна периферія).
-  Адреса застосунку `0x08005800` — перші `0x5800` зайняті FNIRSI-bootloader'ом.
-* **Дисплей:** 160×80 кольоровий IPS, **ST7735** по SPI @ 16 МГц.
-  Драйвер `Core/Drivers/LCD.cpp` (`LCD_160x80`), низькорівневий SPI — `Core/BSP/Fnirsi/SPI_Wrapper.cpp`.
-  UI-варіант `color_160x80` (`Core/Threads/UI/drawing/color_160x80/`).
-* **Акселерометр:** Kionix **KXTJ3-1057**, програмний (bit-bang) I2C: PA9=SCL / PA10=SDA, адреса `0x0E`, без INT (опитування).
-* **Нагрів:** P-MOSFET AO4407A, ШІМ на PA8 (`PWR_OUT`); шунт струму 10 мОм → PB1 (`I_MEAS`);
-  термопара жала → AD8552 → PA0 (`T_MEAS`), читання через ADC+DMA.
-* **USB-PD:** sink-контролер **CH224K**. MCU задає tier напруги через PB6/PB7 (`CFG`),
-  USB-маршрут — PD15. Запит фіксовано **20 В** (зворотного зв'язку про домовлену напругу від CH224K немає).
-* **Кнопки (3 шт., активний низький, pull-up):** UP=PB4, DOWN=PB5, OK=PB3.
-  В IronOS дві логічні кнопки мапляться на UP/DOWN, а OK доступний як `getButtonOK()`
-  (`BUTTON_OK_SHORT/LONG`): коротке — enter/confirm, довге — назад.
-* **Flash-розкладка:** налаштування IronOS — від `0x0801E000` (`SETTINGS_START_PAGE`, 120 К);
-  логотип — `0x08000000 + 122 К`; стокова сторінка калібрування `0x0801F800` **не затирається**
-  і перевикористовується (див. [Калібрування](#калібрування-температури)).
+<p align="center"><img src="docs/images/en/boot.gif" width="420" alt="Boot animation"><br><sub>Boot splash: the segments fill up, then turn green.</sub></p>
 
-## Ключові можливості
+## Controls
 
-* PID-регулятор температури (`TIP_CONTROL_PID`) з умовним anti-windup у спільному `PIDThread.cpp`.
-* Кольоровий UI 160×80: home / soldering / boost / sleep.
-* Кольоровий boot logo (`FnirsiBootLogo.h`, `LCD::drawNativeImage()`).
-* Акселерометр (сон/пробудження за рухом, автоворот екрана).
-* Статусний LED, бузер (за замовчуванням гучність 0 — `BUZZER_VOLUME 0`).
-* Детальні екрани solder/idle увімкнені за замовчуванням (`DETAILED_SOLDERING 1`, `DETAILED_IDLE 1`).
-* DC + PD живлення (QC немає — апаратно відсутній).
+The HS-02 has three buttons: **+**, **−** and **OK** (the +/− roles can be swapped in *System → +/− buttons*).
 
-Попередній перегляд UI без заліза (рендер production-коду через WebAssembly):
+| Screen | + / − | OK | Hold OK |
+| :-- | :-- | :-- | :-- |
+| **Standby** | change the target | start heating | open **Settings** |
+| **Soldering** | change the target by the step (held: ×2 after 1 s, ×5 after 2.5 s) | next **preset** (300 → 330 → 360 °C) | stop heating → standby |
+| **Sleep** | wake up | wake up | wake up |
+| **Settings** | move / change a value | open / edit / confirm | back |
+| **Calibration** | adjust the thermometer reading | next point (when stable) | abort |
 
-```bash
-tools/hs02-wasm-preview/build.sh
-python3 -m http.server 18080 --directory tools/hs02-wasm-preview
-# відкрити http://127.0.0.1:18080/web/ — idle / solder / boost / sleep
+Holding **+ and −** together in standby also opens the settings, and in soldering mode it stops heating, as on the stock firmware.
+
+## Settings
+
+```
+Settings
+├── Sleep      Sleep after · Sleep temperature · Power off after · Motion sensor
+├── Tip        Preset 1 · Preset 2 · Preset 3 · +/− step · Max power · PD voltage
+│              Calibration › · Reset calibration
+├── System     Sound · Brightness · Orientation · +/− buttons · Language
+│              Firmware update · Factory reset · Version
+├── Advanced   All IronOS settings (the original menu) · Diagnostics
+└── Exit
 ```
 
-## Обмеження
+Defaults: presets 300 / 330 / 360 °C, step 5 °C, sleep after 5 min at 150 °C, sound 5/10, 20 V. The menu saves and closes itself after 60 s without input.
 
-* Немає вибору запитуваної PD-напруги (зафіксовано 20 В через CH224K).
-* Немає детекції опору жала / захисту від КЗ нагрівника в релізі.
-* Немає підтримки boot logo з меню (логотип компілюється в прошивку).
-* Переклади не тестувались — гарантовано тільки EN (збираються також інші `translation_*.json`, напр. UK).
-* Порти оригінального IronOS (TS100/TS80/Pinecil/…) у дереві збережено, але **не тестуються** на цьому форку.
+## Flashing
 
-## Прошивка HS-02B
+1. Download the firmware from **[Releases](https://github.com/yakory777/HS-02-ModernUI/releases/latest)**:
 
-### Що завантажувати
+   | Your iron | Russian | English |
+   | :-- | :-- | :-- |
+   | HS-02**A** (C245 tips) | `HS02A_RU.bin` | `HS02A_EN.bin` |
+   | HS-02**B** (C210 tips) | `HS02B_RU.bin` | `HS02B_EN.bin` |
 
-Після збірки потрібен файл з суфіксом **`_firmware.bin`** — він містить 16-байтовий `bin`-заголовок
-для MSD-bootloader'а (`source/Core/BSP/Fnirsi/Scripts/add_header.py`):
+   The colour UI picks its language from the build (*System → Language → Auto*) and can be switched between Russian and English at any time; the build language also sets the classic IronOS menu under *Advanced*.
 
-* `source/Hexfile/HS02B_EN_firmware.bin` — англійська
-* `source/Hexfile/HS02B_UK_firmware.bin` — українська (якщо зібрана)
+   > Use the file for **your** model: the tip parameters and PID tuning differ (C245: 2.5 Ω, KP 55 / KD 6000; C210: 2.6 Ω, KP 40 / KD 4500), and so does the bootloader header (`bin` on HS-02A, `BIN` on HS-02B).
 
-> Звичайний `HS02B_EN.bin` **не прошиється** — завжди беріть `*_firmware.bin`.
+2. Enter the bootloader, either way:
+   - **from the menu**: *Settings → System → Firmware update → OK* (once this firmware is installed), or
+   - **manually**: unplug the iron, hold **OK**, plug it into a computer with a USB-C *data* cable, release OK when the screen says `Please drag the firmware file to the USB flash disk!`.
+3. A USB drive called **BOOTLOADER** appears. Copy the `.bin` file onto it. You have about 40 s before the bootloader gives up and starts the current firmware.
+4. The iron shows `Updating firmware!` and restarts with the new firmware.
 
-### Кроки прошивки
+> [!TIP]
+> On **Linux** the FNIRSI bootloader mishandles write caching: copy the file **twice** with `sync` after each copy, or use `scripts/flash_hs02b_linux.sh <file.bin>`. On Windows, if nothing happens, simply copy the file again.
 
-1. Утримуйте кнопку **OK** і підключіть HS-02B кабелем USB до ПК.
-2. Відпустіть кнопку, коли з'явиться `Please drag the firmware file to the USB flash disk!`.
-3. Дочекайтесь MSD-накопичувача **BOOTLOADER** з порожнім файлом `READY.TXT`.
-4. Скопіюйте `HS02B_*_firmware.bin` на `BOOTLOADER` (автоматично: `./scripts/flash_hs02b_linux.sh source/Hexfile/HS02B_EN_firmware.bin`).
-   1. На Linux скрипт/вручну копіює файл двічі (з `sync` після кожної копії) — bootloader FNIRSI
-      некоректно працює з USB write caching, інакше паяльник зависне в bootloader'і з напівзаписаним образом.
-   2. Є таймаут ~40 с на початок завантаження — після нього bootloader виходить у поточну прошивку.
-5. З'явиться `Updating firmware!`, пристрій перезавантажиться в нову прошивку.
+**Going back to stock**: flash the official `APP_HS_02A_*.bin` / `APP_HS_02B_*.bin` the same way. IronOS keeps its settings in a separate flash page, so the stock settings and calibration survive.
 
-Детально: [Documentation/Flashing/HS02B.md](Documentation/Flashing/HS02B.md).
+## Tip calibration
 
-## Збірка HS-02B
+You need a tip thermometer (an FG-100-style meter, or a fine K-type thermocouple with a MAX31855/MAX6675).
 
-Вимоги: `arm-none-eabi-gcc`, `pip install bdflib` (генерація шрифтів/перекладів).
+1. *Settings → Tip → Calibration*. The iron heats to **150 °C** (by its own reading).
+2. When the reading has been stable for 3 s the pill turns **green**. Measure the tip, set the measured value with **+/−** and press **OK**.
+3. Repeat for **250 °C** and **350 °C**.
+4. The result is written into the stock calibration words (raw ADC counts at 140 / 240 / 340 °C), so the stock firmware uses it too.
+
+Before the first write the factory values are backed up; *Reset calibration* restores them. In a simulation with a deliberately wrong factory calibration (+32 °C at 150 °C), the error after calibration stays within 2–3 °C between 150 and 350 °C.
+
+## Building from source
+
+Requirements: `arm-none-eabi-gcc` (with newlib), GNU make, Python 3 with `bdflib`.
 
 ```bash
 cd source
-make model=HS02B -j$(nproc)
-# EN за замовчуванням: make model=HS02B firmware-EN
-# Українська:
-make model=HS02B firmware-UK -j$(nproc)
+make model=HS02A firmware-RU -j$(nproc)    # HS02A / HS02B, EN / RU / any Translations/*.json
+ls Hexfile/*_firmware.bin                  # this is the file to flash (16-byte bootloader header)
 ```
 
-Результат — `source/Hexfile/HS02B_*_firmware.bin` (+ `.hex`, `.dfu`, `.elf`, `.map`).
+- **Windows**: use WSL (Ubuntu): `sudo apt install gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib make python3-pip` and `pip install --break-system-packages bdflib`.
+- **Docker**: `docker build -f scripts/IronOS.Dockerfile -t ironos . && docker run --rm -v "$PWD":/build/ironos ironos sh -c "cd source && make model=HS02A firmware-RU -j4"`.
+- **CI**: every push builds HS02A/HS02B × EN/RU on GitHub Actions; pushing a tag `v*` publishes a release with the four `.bin` files.
 
-Мультимовні/інші цілі — як в апстримі (`make list` у корені, `source/Makefile`).
+Any `Translations/translation_*.json` language can be built for the classic IronOS screens; the colour UI itself ships in English and Russian (*System → Language*, *Auto* = Russian for RU/UK/BE builds, English otherwise).
 
-Перевірки стилю перед PR:
+### Changing texts or fonts
+
+All colour-UI strings live in [`Hs02UiStrings.hpp`](source/Core/Threads/UI/drawing/color_160x80/Hs02UiStrings.hpp), one line per string with the English and Russian text. Only the glyphs actually used are embedded, so after editing text regenerate the font tables:
 
 ```bash
-make -C source/ clean check-style
+pip install pillow
+python3 tools/hs02-ui-fonts/gen_modern_font.py
 ```
 
-## Калібрування температури
+### Regenerating the screenshots
 
-Модель — `source/Core/BSP/Fnirsi/ThermoModel.cpp`:
+```bash
+tools/hs02-wasm-preview/render_docs.sh     # needs g++ and Pillow; writes docs/images/
+```
 
-1. **Заводське калібрування стоку (пріоритет):** стокова прошивка тримає 3 слова
-   користувацького калібрування на сторінці `0x0801F800` (слова `0x16/0x17/0x18`,
-   `count = word − bias`, bias `0x7F21/0x7E77/0x7DC4`, якорі кривої 140/240/340 °C).
-   Плейсхолдер `0x8000` («ніколи не калібрувалось») **відхиляється**.
-   Налаштування IronOS лежать нижче `0x0801F000`, тому стокова сторінка переживає перепрошивку.
-2. **Fallback:** виміряна стала ~26 мкВ/°C (калібровано по точках плавлення припою
-   Sn45/Pb55: solidus ~183 °C / liquidus ~227 °C) — приблизно в 3 рази точніше за некалібрований сток.
+There is also an interactive browser preview (WebAssembly, needs Emscripten): see [`tools/hs02-wasm-preview`](tools/hs02-wasm-preview/README.md).
 
-Сторінка Debug menu **Tip Cal** (17-та сторінка; з home — довге утримання UP)
-показує три декодовані counts + `In Use` / `Unused 26uV/C`.
+## How it works
 
-Шлях без змін коду для точності ±3 °C: прошийте сток → відкалібруйте за термометром жала
-на екрані 150/250/350 °C → перепрошийте IronOS (значення підхопляться автоматично).
-Деталі — `TODO.md`, `CLAUDE.md`.
+<details>
+<summary><b>Colour on a 2-bit framebuffer</b></summary>
 
-## Керування (3 кнопки HS-02B)
+The ST7735 frame is kept as 2 bits per pixel (3.2 KB of the MCU's 24 KB RAM), i.e. only 4 colours. The screens are laid out in horizontal rows (status pill · value · bar · footer), so the LCD driver gets a palette **per row band** ([`ColorBand.hpp`](source/Core/Drivers/ColorBand.hpp), `LCD::setColorBands`). Each band has its own 4 colours, enough for black, white, grey, the state colour and its tint without extra RAM. Text is Inter rendered at build time to 2-bit glyphs (solid + edge), with the edge painted in a dim colour for cheap anti-aliasing.
+</details>
 
-* `UP` (біля жала) / `DOWN` (біля хвоста): коротке — ±1 °C, довге — ±10 °C / навігація.
-* `OK`: коротке — вхід/підтвердження, довге — назад.
-* Soldering: довге UP — **Boost** (тимчасовий `BOOST_TEMP`, за замовч. 420 °C);
-  довге DOWN — вихід у standby; обидві довго — lock.
-* Standby: довге UP — екран встановлення температури до нагріву; довге DOWN — debug menu.
-* Home: довге DOWN — debug menu.
+<details>
+<summary><b>Firmware update from the menu</b></summary>
 
-Повний опис меню — апстрим-документація (`Documentation/Menu.md`, `Settings.md`,
-`GettingStarted.md`) + [HS-02B flashing guide](Documentation/Flashing/HS02B.md).
+Reverse engineering of the stock `APP_HS_02A_V2.1.1` showed that its *Firmware upgrade* item writes `0x87456321` into word 18 of its settings block at `0x0801F800` and resets. The bootloader sees the flag and starts the USB drive. This firmware does the same (`enterFirmwareUpdateMode()` in the Fnirsi BSP), preserving the rest of the block, including the factory calibration.
+</details>
 
-## Документація
+<details>
+<summary><b>Bootloader header and file name</b></summary>
 
-* [Getting Started (HS-02B notes)](Documentation/GettingStarted_HS02B.md)
-* [Flashing HS-02B](Documentation/Flashing/HS02B.md)
-* [Hardware notes](Documentation/Hardware.md) (+ [Port BSP README](source/Core/BSP/Fnirsi/README.md))
-* [Історія/ TODO](TODO.md) · [Нотатки розробника](CLAUDE.md)
-* Решта `Documentation/*.md` — апстрим IronOS (Pinecil/TS100/…), застосовна частково.
+The MSD bootloader expects a 16-byte header: a 3-letter tag + `\0` + the little-endian image length. The HS-02A bootloader wants a lowercase `bin` (as the official HS-02A files have), the HS-02B fork used `BIN`. The Makefile picks it per model (`FNIRSI_HEADER_TAG`). Short 8.3 file names are the safest choice.
+</details>
 
-## Ліцензія
+<details>
+<summary><b>Calibration format</b></summary>
 
-Код спільноти — [GNU GPLv3](LICENSE), якщо не вказано інше.
-FreeRTOS / USB-PD та інші компоненти — під власними ліцензіями.
+The stock block stores three words at offsets `0x16..0x18`: `raw ADC count + bias` for 140 / 240 / 340 °C (biases `0x7F21 / 0x7E77 / 0x7DC4`). The temperature model interpolates through them piecewise-linearly. The calibration screen measures the raw count at three thermometer-verified points (compensating the handle-temperature term the model adds), interpolates the counts at the anchor temperatures and writes them back. A one-time backup of the factory words lives in words 100–102, which stock never uses.
+</details>
 
-Цей форк надається **«AS IS»**, без комерційної підтримки.
-Не ре-хостіть файли — давайте посилання на цей репозиторій / релізи, щоб не розпорошувати старі версії.
+<details>
+<summary><b>USB-PD voltage</b></summary>
+
+The CH224K sink is configured by the MCU through CFG2/CFG3 (PB7/PB6), with CFG1 tied low: `00` 9 V, `01` 12 V, `11` 15 V, `10` 20 V. The setting is applied at boot and when changed; if your charger doesn't renegotiate, replug the cable.
+</details>
+
+### Where things are
+
+| Path | What |
+| :-- | :-- |
+| `source/Core/Threads/UI/drawing/color_160x80/draw_home_gauge.cpp` | all colour screens (gauge, boot, menu, alerts, calibration) |
+| `source/Core/Threads/UI/logic/ModernMenu.cpp` | the settings menu (structure, formatting, actions) |
+| `source/Core/Threads/UI/logic/TipCalibration.cpp` | the 3-point calibration flow |
+| `source/Core/Threads/UI/logic/utils/Hs02Controls.*` | FNIRSI-style +/−, presets, deferred saving |
+| `source/Core/BSP/Fnirsi/` | board support: buzzer, PD voltage, bootloader flag, temperature model |
+| `source/Core/Drivers/LCD.*`, `ColorBand.hpp` | ST7735 driver with per-row palettes |
+| `tools/hs02-ui-fonts/` | font generator (Inter, SIL OFL) |
+| `tools/hs02-wasm-preview/` | UI preview + screenshot renderer |
+
+Developer notes (hardware facts, gotchas): [`CLAUDE.md`](CLAUDE.md). Changes: [`CHANGELOG.md`](CHANGELOG.md).
+
+## Roadmap
+
+- Preset chips (300 · 330 · 360) on the main screen, like CH1/CH2/CH3 on stock
+- A brief highlight when the target changes
+- Larger 12 px footer text; alternating hints in standby; a scroll bar in long menus
+- Colour versions of the remaining classic IronOS screens (Advanced, Diagnostics)
+
+## Credits
+
+Built on the shoulders of:
+
+- [**IronOS**](https://github.com/Ralim/IronOS) by Ben V. Brown (Ralim) and contributors: the soldering firmware itself
+- [**PanKleszcz/IronOS**](https://github.com/PanKleszcz/IronOS): the original FNIRSI HS-02 port
+- [**ok2cm/IronOS**](https://github.com/ok2cm/IronOS): colour 160×80 UI, PID, boot logo, OK button
+- [**MYMDO/IronOS-FNIRSI-HS-02B**](https://github.com/MYMDO/IronOS-FNIRSI-HS-02B): HS-02B support, calibration RE, PWM fixes (its original README is kept in [`Documentation/upstream-fork`](Documentation/upstream-fork/README.uk.md))
+- [**Inter**](https://github.com/rsms/inter) typeface by Rasmus Andersson (SIL OFL 1.1)
+
+## License
+
+[GNU GPLv3](LICENSE), like IronOS. FreeRTOS, the vendor SDK and the Inter font keep their own licenses ([`tools/hs02-ui-fonts/OFL.txt`](tools/hs02-ui-fonts/OFL.txt)). Not affiliated with FNIRSI.

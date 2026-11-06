@@ -226,3 +226,7 @@ source/check-style.log
 # not ours to redistribute in a GPL repo. Keep this local-only.
 Development Resources/
 tools/hs02-wasm-preview/web/generated/
+
+# HS-02 Modern UI
+dist/
+tools/hs02-wasm-preview/web/generated/

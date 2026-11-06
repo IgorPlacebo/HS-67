@@ -1,0 +1,62 @@
+name: Build firmware
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write # needed to publish releases on tags
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.model }} ${{ matrix.lang }}
+    runs-on: ubuntu-24.04
+    container:
+      image: alpine:3.21
+    strategy:
+      fail-fast: false
+      matrix:
+        model: [HS02A, HS02B]
+        lang: [EN, RU]
+    steps:
+      - name: Install toolchain
+        run: |
+          apk add --no-cache gcc-arm-none-eabi g++-arm-none-eabi newlib-arm-none-eabi findutils python3 py3-pip make git bash
+          python3 -m pip install --break-system-packages bdflib
+
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          make -C source model=${{ matrix.model }} firmware-${{ matrix.lang }} -j"$(nproc)"
+          mkdir -p dist
+          # Short 8.3-style name: the FNIRSI MSD bootloader is happiest with it.
+          cp source/Hexfile/${{ matrix.model }}_${{ matrix.lang }}_firmware.bin dist/${{ matrix.model }}_${{ matrix.lang }}.bin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.model }}_${{ matrix.lang }}
+          path: dist/*.bin
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.bin
+          generate_release_notes: true

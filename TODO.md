@@ -1,3 +1,14 @@
+# TODO
+
+## HS-02 Modern UI — next
+- [ ] Preset chips (300 · 330 · 360) on the main screen
+- [ ] Brief highlight of the target when it changes
+- [ ] 12 px footer text, alternating standby hints, menu scroll bar
+- [ ] Colour versions of the remaining classic screens (legacy menu, diagnostics)
+- [ ] Verify on hardware: boot splash visibility, menu firmware-update flag on HS-02B, PD renegotiation on CFG change
+
+---
+
 # TODO — HS-02B IronOS follow-up work
 
 > Status: `model=HS02B` builds (`HS02B_EN_firmware.bin` / `HS02B_UK_firmware.bin`).
@@ -28,9 +39,8 @@ Goal: bring the ~+17°C residual down to within ±3°C. Either path works:
   calibration values get written to flash at `0x0801F800`; reflashing IronOS
   afterward auto-detects and adopts them (`ThermoModel.cpp`) — the debug menu's
   "Tip Cal" page flips from "Unused 26uV/C" to "In Use" once it takes effect.
-- **Path B (better UX)**: implement our own three-point calibration menu in
-  IronOS that writes the same stock page format (word = count + bias, see
-  CLAUDE.md for the bias constants) — compatible with stock firmware either way.
+- **Path B (better UX)**: ✅ done — *Settings → Tip → Calibration* writes the
+  same stock page format (see CLAUDE.md, "HS-02 Modern UI layer").
 
 Verify by redoing the solder-melting-point test: after calibration, Sn45/Pb55
 should cut around a displayed ~183°C and fully melt around ~227°C.

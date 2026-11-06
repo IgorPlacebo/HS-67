@@ -121,3 +121,32 @@ button/interaction map, and the extracted boot logo. Key finding: the temperatur
 path (calibration, PID, factory defaults) is byte-identical V1.8↔V2.1; the only temp-relevant
 change in V2.1 is the accelerometer tilt-angle logic (a new 90° breakpoint affecting
 motion-sleep), which is why V2.1 "holds temperature more aggressively".
+
+## HS-02 Modern UI layer (this repository)
+
+- **Colour UI**: everything colour lives in `Core/Threads/UI/drawing/color_160x80/draw_home_gauge.cpp`
+  (gauge screens, boot splash, menu, alerts, calibration). Text comes from `Hs02UiStrings.hpp`
+  (`HS02_TEXT(name, en, ru)` → `Hs02UiText::name()`), glyphs from the generated `Hs02ModernFont.hpp`
+  (`tools/hs02-ui-fonts/gen_modern_font.py`; re-run after editing strings). Language at run time:
+  `SettingsOptions::HS02UiLanguage` (0 auto via `TranslationLanguageCode`, 1 RU, 2 EN).
+- **Palettes**: the 2bpp frame has 4 colours per *row band* — call `Display::setColorBands()` every
+  frame (bands are re-hashed; a palette-only change forces a refresh). Standard bands: status 0-17,
+  value 18-49, bar 50-57, footer 58-79; the menu uses one band per 20 px row.
+- **Modes added**: `OperatingMode::ModernMenu` (`logic/ModernMenu.cpp`), `TipCalibration`
+  (`logic/TipCalibration.cpp`). Both are colour screens (`isColorScreenMode`). Legacy menu is still
+  reachable as `SettingsMenu` from *Advanced*.
+- **Controls** (`logic/utils/Hs02Controls.*`): `hs02StepTarget`, `hs02NextPreset`, `hs02RepeatMultiplier`
+  (rate-limited ~8/s, ×2 after 1 s, ×5 after 2.5 s). Target changes are saved 2 s after the last press
+  and on every mode change (`hs02ControlsFlush` in `guiRenderLoop`). Beeps: `utils/Beeper.*`.
+- **New settings** (appended, so old saves keep their values): `PresetTemp1..3`, `BuzzerVolume`,
+  `PDVoltage`, `HS02UiLanguage`. Upgrading from < `PresetTemp1` also resets SleepTime/step defaults.
+- **Stock page 0x0801F800** (`hs02StockPageBegin/Commit` in the Fnirsi BSP): 100-word stock settings
+  block. Word 0 = 20 (version), words 0x16-0x18 = calibration (`count + bias`), word 18 = bootloader
+  update flag `0x87456321` (RE of APP_HS_02A_V2.1.1, `NVIC_SystemReset` caller at 0x08009504).
+  Words 100-102 = our one-time backup of the factory calibration words.
+- **Calibration math**: with stock calibration the model returns `curve(count) - 25 °C + handle`, so
+  the calibration stores `truth + 25 - handle` per point before deriving the 140/240/340 anchors.
+- **Bootloader header**: HS-02A wants `bin`, HS-02B `BIN` (`FNIRSI_HEADER_TAG` in `source/Makefile`).
+  Official HS-02A files: `bin\0` + LE length. Short 8.3 names are safest.
+- **CH224K**: CFG2/CFG3 = 00 9 V, 01 12 V, 11 15 V, 10 20 V (`applyPDVoltageSetting`).
+- **Screenshots**: `tools/hs02-wasm-preview/render_docs.sh` compiles the real drawing code for the host.
