@@ -2,7 +2,7 @@
 
 All notable changes of **HS-02 Modern UI** (on top of [MYMDO/IronOS-FNIRSI-HS-02B](https://github.com/MYMDO/IronOS-FNIRSI-HS-02B)).
 
-## [Unreleased]
+## [1.1.0] — 2026-11-08
 
 ### Added
 - **Power-on melody**: a ~3 s tune (`tools/hs02-ui-sounds/startup.rtttl`, baked by
