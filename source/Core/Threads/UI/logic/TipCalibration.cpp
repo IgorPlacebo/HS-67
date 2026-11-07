@@ -54,7 +54,7 @@ OperatingMode gui_tipCalibration(const ButtonState buttons, guiContext *cxt) {
     currentTempTargetDegC = 0;
     const bool ok         = st.state1 == kDone;
     ui_draw_alert(Hs02UiText::kCalTitle(), ok ? Hs02UiText::kCalDone1() : Hs02UiText::kCalFail1(), ok ? Hs02UiText::kCalDone2() : Hs02UiText::kCalFail2(),
-                  Hs02UiText::kExitHint(), ok ? 0x30D158 : 0xFF453A);
+                  Hs02UiText::kExitHint(), ok ? 0xFF4DB8 : 0xFF3B30); // pink = done, red = failed (draw_home_gauge.cpp palette)
     return (buttons == BUTTON_OK_SHORT || buttons == BUTTON_OK_LONG) ? OperatingMode::ModernMenu : OperatingMode::TipCalibration;
   }
 

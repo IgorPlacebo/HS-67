@@ -133,8 +133,10 @@ motion-sleep), which is why V2.1 "holds temperature more aggressively".
   frame (bands are re-hashed; a palette-only change forces a refresh). Standard bands: status 0-17,
   value 18-49, bar 50-57, footer 58-79; the menu uses one band per 20 px row.
 - **Modes added**: `OperatingMode::ModernMenu` (`logic/ModernMenu.cpp`), `TipCalibration`
-  (`logic/TipCalibration.cpp`). Both are colour screens (`isColorScreenMode`). Legacy menu is still
-  reachable as `SettingsMenu` from *Advanced*.
+  (`logic/TipCalibration.cpp`). Both are colour screens (`isColorScreenMode`). The legacy IronOS
+  screens (classic settings menu, debug, PD debug, CJC, temperature adjust, profile) are not
+  dispatched on HS-02 (`#if !defined(LCD_160x80)` in `GUIThread.cpp`), so the linker drops them
+  together with the legacy fonts; `warnUser()` always uses the colour alert layout.
 - **Controls** (`logic/utils/Hs02Controls.*`): `hs02StepTarget`, `hs02NextPreset`, `hs02RepeatMultiplier`
   (rate-limited ~8/s, ×2 after 1 s, ×5 after 2.5 s). Target changes are saved 2 s after the last press
   and on every mode change (`hs02ControlsFlush` in `guiRenderLoop`). Beeps: `utils/Beeper.*`.

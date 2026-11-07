@@ -110,12 +110,14 @@ OperatingMode guiHandleDraw(void) {
   case OperatingMode::StartupWarnings:
     newMode = showWarnings(buttons, &context);
     break;
+#if !defined(LCD_160x80) // HS-02: only the colour UI is built in; the legacy IronOS screens are gone
   case OperatingMode::UsbPDDebug:
 #ifdef HAS_POWER_DEBUG_MENU
     newMode = showPDDebug(buttons, &context);
     break;
 #else
     newMode = OperatingMode::InitialisationDone;
+#endif
 #endif
   case OperatingMode::StartupLogo:
     showBootLogo();
@@ -143,11 +145,12 @@ OperatingMode guiHandleDraw(void) {
     context.scratch_state.state4 = 0;
     newMode                      = gui_solderingMode(buttons, &context);
     break;
-  case OperatingMode::SolderingProfile:
-    newMode = gui_solderingProfileMode(buttons, &context);
-    break;
   case OperatingMode::Sleeping:
     newMode = gui_SolderingSleepingMode(buttons, &context);
+    break;
+#if !defined(LCD_160x80)
+  case OperatingMode::SolderingProfile:
+    newMode = gui_solderingProfileMode(buttons, &context);
     break;
   case OperatingMode::TemperatureAdjust:
     newMode = gui_solderingTempAdjust(buttons, &context);
@@ -161,6 +164,7 @@ OperatingMode guiHandleDraw(void) {
   case OperatingMode::SettingsMenu:
     newMode = gui_SettingsMenu(buttons, &context);
     break;
+#endif
   case OperatingMode::ModernMenu:
     newMode = gui_modernMenu(buttons, &context);
     break;
@@ -266,6 +270,9 @@ void guiRenderLoop(void) {
 }
 
 OperatingMode handle_post_init_state() {
+#if defined(LCD_160x80)
+  return OperatingMode::StartupWarnings; // HS-02: no PD debug / CJC calibration screens
+#else
 #ifdef HAS_POWER_DEBUG_MENU
 #ifdef DEBUG_POWER_MENU_BUTTON_B
   if (buttonsAtDeviceBoot == BUTTON_B_LONG || buttonsAtDeviceBoot == BUTTON_B_SHORT) {
@@ -282,6 +289,7 @@ OperatingMode handle_post_init_state() {
   }
 
   return OperatingMode::StartupWarnings;
+#endif
 }
 
 /* StartGUITask function */

@@ -1,9 +1,8 @@
 // HS-02 colour settings menu, laid out like the stock FNIRSI firmware:
 //   Settings ─┬─ Sleep    : sleep after, sleep temperature, power off after, motion sensor
 //             ├─ Tip      : presets 1-3, +/- step, max power, USB-PD voltage
-//             ├─ System   : sound, brightness, orientation, +/- buttons, firmware update,
-//             │             factory reset, version
-//             ├─ Advanced : the full IronOS settings menu, diagnostics
+//             ├─ System   : sound, brightness, orientation, +/- buttons, language,
+//             │             firmware update, factory reset, version
 //             └─ Exit
 // Controls: +/- move (held: repeat), OK = open / edit / confirm, hold OK = back.
 // After 60 s without input the menu saves and returns to standby (as the stock UI does).
@@ -25,10 +24,10 @@ void hs02ResetTipCal(); // ThermoModel.cpp
 
 namespace {
 
-enum MenuId : uint8_t { M_ROOT, M_SLEEP, M_TIP, M_SYSTEM, M_ADVANCED };
+enum MenuId : uint8_t { M_ROOT, M_SLEEP, M_TIP, M_SYSTEM };
 enum class Kind : uint8_t { Submenu, Setting, Action, Info };
 enum Fmt : uint8_t { F_LANG, F_TEMP, F_SLEEP, F_MINUTES, F_OFFNUM, F_WATTS, F_PD, F_BRIGHT, F_ORIENT, F_REVERSE, F_STEP, F_NONE };
-enum ActionId : uint8_t { A_EXIT, A_IRONOS, A_DIAG, A_UPDATE, A_RESET, A_CALIB, A_CALRESET };
+enum ActionId : uint8_t { A_EXIT, A_UPDATE, A_RESET, A_CALIB, A_CALRESET };
 
 using TextFn = const char *(*)();
 
@@ -48,7 +47,6 @@ const Item kRootItems[] = {
     {kMenuSleep, Kind::Submenu, M_SLEEP, F_NONE, 0, 0, 0, 0},
     {kMenuTip, Kind::Submenu, M_TIP, F_NONE, 0, 0, 0, 0},
     {kMenuSystem, Kind::Submenu, M_SYSTEM, F_NONE, 0, 0, 0, 0},
-    {kMenuAdvanced, Kind::Submenu, M_ADVANCED, F_NONE, 0, 0, 0, 0},
     {kMenuExit, Kind::Action, A_EXIT, F_NONE, 0, 0, 0, 0},
 };
 const Item kSleepItems[] = {
@@ -77,10 +75,6 @@ const Item kSystemItems[] = {
     {kItemReset, Kind::Action, A_RESET, F_NONE, 0, 0, 0, 0},
     {kItemVersion, Kind::Info, 0, F_NONE, 0, 0, 0, 0},
 };
-const Item kAdvancedItems[] = {
-    {kItemIronOS, Kind::Action, A_IRONOS, F_NONE, 0, 0, 0, 0},
-    {kItemDiag, Kind::Action, A_DIAG, F_NONE, 0, 0, 0, 0},
-};
 
 struct Menu {
   TextFn      title;
@@ -92,7 +86,6 @@ const Menu kMenus[] = {
     {kMenuSleep, kSleepItems, sizeof(kSleepItems) / sizeof(Item)},
     {kMenuTip, kTipItems, sizeof(kTipItems) / sizeof(Item)},
     {kMenuSystem, kSystemItems, sizeof(kSystemItems) / sizeof(Item)},
-    {kMenuAdvanced, kAdvancedItems, sizeof(kAdvancedItems) / sizeof(Item)},
 };
 
 // ---------------------------------------------------------------- formatting
@@ -335,10 +328,6 @@ OperatingMode gui_modernMenu(const ButtonState buttons, guiContext *cxt) {
       switch (item.arg) {
       case A_EXIT:
         return leave(OperatingMode::HomeScreen);
-      case A_IRONOS:
-        return leave(OperatingMode::SettingsMenu);
-      case A_DIAG:
-        return leave(OperatingMode::DebugMenuReadout);
       default:
         st.state6 = item.arg; // update / reset ask first
         break;
@@ -397,6 +386,6 @@ OperatingMode gui_modernMenu(const ButtonState buttons, guiContext *cxt) {
 OperatingMode gui_modernMenu(const ButtonState buttons, guiContext *cxt) {
   (void)buttons;
   (void)cxt;
-  return OperatingMode::SettingsMenu;
+  return OperatingMode::SettingsMenu; // other devices: classic IronOS menu
 }
 #endif

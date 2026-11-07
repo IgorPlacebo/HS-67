@@ -100,6 +100,9 @@ enum StatusLED {
 void setStatusLED(const enum StatusLED state);
 
 void setBuzzer(bool on);
+// Power-on melody (HS-02 only; no-ops elsewhere). Plays in the background; any UI beep stops it.
+void playStartupMelody(void);
+void stopStartupMelody(void);
 
 // HS-02 family extras (implemented only by the Fnirsi BSP)
 void applyPDVoltageSetting();   // Drive the CH224K CFG pins from SettingsOptions::PDVoltage

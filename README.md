@@ -17,9 +17,9 @@ A custom [IronOS](https://github.com/Ralim/IronOS) firmware for the **FNIRSI HS-
 
 **What you get**
 
-- 🎨 **A new colour UI** for every everyday screen: standby, heating, ready, cooling, sleep, settings, calibration and warnings, drawn with the Inter typeface and two-level anti-aliasing.
+- 🎨 **A new colour UI** for every everyday screen: standby, heating, ready, cooling, sleep, settings, calibration and warnings, drawn with the Oswald typeface and two-level anti-aliasing.
 - 🕹️ **FNIRSI-style controls**: OK starts heating, +/− change the target (held: accelerating), OK cycles three presets, hold OK to stop or open the settings.
-- ⚙️ **Clear settings menu**: Sleep / Tip / System / Advanced, in English or Russian (switchable at any time), with live preview of brightness and sound.
+- ⚙️ **Clear settings menu**: Sleep / Tip / System, in English or Russian (switchable at any time), with live preview of brightness and sound.
 - 🌡️ **3-point tip calibration** (150 / 250 / 350 °C) against a tip thermometer, stored in the stock format, with the factory values kept for a one-click reset.
 - 🔊 **Buzzer** with adjustable volume: a chime when the tip is ready, clicks for presets and start/stop.
 - 🔌 **USB-PD voltage** selectable (9 / 12 / 15 / 20 V) through the CH224K, like the stock firmware.
@@ -35,19 +35,19 @@ Every image below is rendered by the **real firmware drawing code** (see [Screen
 
 <table>
   <tr>
-    <td align="center"><img src="docs/images/en/standby.png" width="360"><br><sub><b>Standby</b>: heater off, target and preset on the right</sub></td>
-    <td align="center"><img src="docs/images/en/heating.png" width="360"><br><sub><b>Heating</b>: the bar shows progress to the target</sub></td>
+    <td align="center"><img src="docs/images/en/standby.png" width="360"><br><sub><b>Standby</b>: a picture after power-on, the temperature and a hint below</sub></td>
+    <td align="center"><img src="docs/images/en/heating.png" width="360"><br><sub><b>Heating</b>: a beating heart and “heating… 56%”</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/en/ready.png" width="360"><br><sub><b>Ready</b>: a chime, and the bar becomes the heater load</sub></td>
-    <td align="center"><img src="docs/images/en/cooling.png" width="360"><br><sub><b>Cooling</b>: the target was lowered</sub></td>
+    <td align="center"><img src="docs/images/en/ready.png" width="360"><br><sub><b>Ready</b>: a chime, and each preset shows its own picture</sub></td>
+    <td align="center"><img src="docs/images/en/cooling.png" width="360"><br><sub><b>Cooling</b>: the target was lowered, “cooling…”</sub></td>
   </tr>
   <tr>
     <td align="center"><img src="docs/images/en/standby_hot.png" width="360"><br><sub><b>Hot!</b>: heater off but the tip is above 50 °C (blinks)</sub></td>
     <td align="center"><img src="docs/images/en/sleep.png" width="360"><br><sub><b>Sleep</b>: holds the sleep temperature until you move the iron</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/en/menu_root.png" width="360"><br><sub><b>Settings</b>: Sleep / Tip / System / Advanced</sub></td>
+    <td align="center"><img src="docs/images/en/menu_root.png" width="360"><br><sub><b>Settings</b>: Sleep / Tip / System</sub></td>
     <td align="center"><img src="docs/images/en/menu_edit.png" width="360"><br><sub><b>Editing a value</b>: the accent capsule</sub></td>
   </tr>
   <tr>
@@ -56,7 +56,7 @@ Every image below is rendered by the **real firmware drawing code** (see [Screen
   </tr>
 </table>
 
-<p align="center"><img src="docs/images/en/boot.gif" width="420" alt="Boot animation"><br><sub>Boot splash: the segments fill up, then turn green.</sub></p>
+<p align="center"><img src="docs/images/en/boot.gif" width="420" alt="Boot animation"><br><sub>Boot splash: the segments fill up, then turn pink.</sub></p>
 
 ## Controls
 
@@ -81,7 +81,6 @@ Settings
 │              Calibration › · Reset calibration
 ├── System     Sound · Brightness · Orientation · +/− buttons · Language
 │              Firmware update · Factory reset · Version
-├── Advanced   All IronOS settings (the original menu) · Diagnostics
 └── Exit
 ```
 
@@ -96,7 +95,7 @@ Defaults: presets 300 / 330 / 360 °C, step 5 °C, sleep after 5 min at 150 °C,
    | HS-02**A** (C245 tips) | `HS02A_RU.bin` | `HS02A_EN.bin` |
    | HS-02**B** (C210 tips) | `HS02B_RU.bin` | `HS02B_EN.bin` |
 
-   The colour UI picks its language from the build (*System → Language → Auto*) and can be switched between Russian and English at any time; the build language also sets the classic IronOS menu under *Advanced*.
+   The colour UI picks its language from the build (*System → Language → Auto*) and can be switched between Russian and English at any time.
 
    > Use the file for **your** model: the tip parameters and PID tuning differ (C245: 2.5 Ω, KP 55 / KD 6000; C210: 2.6 Ω, KP 40 / KD 4500), and so does the bootloader header (`bin` on HS-02A, `BIN` on HS-02B).
 
@@ -135,7 +134,7 @@ What survives: IronOS keeps its own settings in a separate flash page, so the st
 You need a tip thermometer (an FG-100-style meter, or a fine K-type thermocouple with a MAX31855/MAX6675).
 
 1. *Settings → Tip → Calibration*. The iron heats to **150 °C** (by its own reading).
-2. When the reading has been stable for 3 s the pill turns **green**. Measure the tip, set the measured value with **+/−** and press **OK**.
+2. When the reading has been stable for 3 s the pill turns **pink**. Measure the tip, set the measured value with **+/−** and press **OK**.
 3. Repeat for **250 °C** and **350 °C**.
 4. The result is written into the stock calibration words (raw ADC counts at 140 / 240 / 340 °C), so the stock firmware uses it too.
 
@@ -179,7 +178,7 @@ There is also an interactive browser preview (WebAssembly, needs Emscripten): se
 <details>
 <summary><b>Colour on a 2-bit framebuffer</b></summary>
 
-The ST7735 frame is kept as 2 bits per pixel (3.2 KB of the MCU's 24 KB RAM), i.e. only 4 colours. The screens are laid out in horizontal rows (status pill · value · bar · footer), so the LCD driver gets a palette **per row band** ([`ColorBand.hpp`](source/Core/Drivers/ColorBand.hpp), `LCD::setColorBands`). Each band has its own 4 colours, enough for black, white, grey, the state colour and its tint without extra RAM. Text is Inter rendered at build time to 2-bit glyphs (solid + edge), with the edge painted in a dim colour for cheap anti-aliasing.
+The ST7735 frame is kept as 2 bits per pixel (3.2 KB of the MCU's 24 KB RAM), i.e. only 4 colours. The screens are laid out in horizontal rows (status pill · value · bar · footer), so the LCD driver gets a palette **per row band** ([`ColorBand.hpp`](source/Core/Drivers/ColorBand.hpp), `LCD::setColorBands`). Each band has its own 4 colours, enough for black, white, grey, the state colour and its tint without extra RAM. Text is Oswald rendered at build time to 2-bit glyphs (solid + edge), with the edge painted in a dim colour for cheap anti-aliasing.
 </details>
 
 <details>
@@ -216,7 +215,9 @@ The CH224K sink is configured by the MCU through CFG2/CFG3 (PB7/PB6), with CFG1 
 | `source/Core/Threads/UI/logic/utils/Hs02Controls.*` | FNIRSI-style +/−, presets, deferred saving |
 | `source/Core/BSP/Fnirsi/` | board support: buzzer, PD voltage, bootloader flag, temperature model |
 | `source/Core/Drivers/LCD.*`, `ColorBand.hpp` | ST7735 driver with per-row palettes |
-| `tools/hs02-ui-fonts/` | font generator (Inter, SIL OFL) |
+| `tools/hs02-ui-fonts/` | font generator (Oswald, SIL OFL) |
+| `tools/hs02-ui-sounds/` | power-on melody: `startup.rtttl` → `gen_startup_melody.py` |
+| `tools/hs02-ui-images/` | pictures for the Ready (`presets/preset1..3.png`) and standby (`presets/standby.png`) screens → `gen_preset_images.py` |
 | `tools/hs02-wasm-preview/` | UI preview + screenshot renderer |
 
 Developer notes (hardware facts, gotchas): [`DEVELOPMENT.md`](DEVELOPMENT.md). Changes: [`CHANGELOG.md`](CHANGELOG.md).
@@ -226,7 +227,6 @@ Developer notes (hardware facts, gotchas): [`DEVELOPMENT.md`](DEVELOPMENT.md). C
 - Preset chips (300 · 330 · 360) on the main screen, like CH1/CH2/CH3 on stock
 - A brief highlight when the target changes
 - Larger 12 px footer text; alternating hints in standby; a scroll bar in long menus
-- Colour versions of the remaining classic IronOS screens (Advanced, Diagnostics)
 
 ## Credits
 
@@ -236,8 +236,9 @@ Built on the shoulders of:
 - [**PanKleszcz/IronOS**](https://github.com/PanKleszcz/IronOS): the original FNIRSI HS-02 port
 - [**ok2cm/IronOS**](https://github.com/ok2cm/IronOS): colour 160×80 UI, PID, boot logo, OK button
 - [**MYMDO/IronOS-FNIRSI-HS-02B**](https://github.com/MYMDO/IronOS-FNIRSI-HS-02B): HS-02B support, calibration RE, PWM fixes (its original README is kept in [`Documentation/upstream-fork`](Documentation/upstream-fork/README.uk.md))
-- [**Inter**](https://github.com/rsms/inter) typeface by Rasmus Andersson (SIL OFL 1.1)
+- [**Oswald**](https://github.com/googlefonts/OswaldFont) typeface by The Oswald Project Authors (SIL OFL 1.1)
+- [**Inter**](https://github.com/rsms/inter) typeface by Rasmus Andersson (SIL OFL 1.1), used for the README banner
 
 ## License
 
-[GNU GPLv3](LICENSE), like IronOS. FreeRTOS, the vendor SDK and the Inter font keep their own licenses ([`tools/hs02-ui-fonts/OFL.txt`](tools/hs02-ui-fonts/OFL.txt)). Not affiliated with FNIRSI.
+[GNU GPLv3](LICENSE), like IronOS. FreeRTOS, the vendor SDK and the Oswald and Inter fonts keep their own licenses ([`OFL-Oswald.txt`](tools/hs02-ui-fonts/OFL-Oswald.txt), [`OFL.txt`](tools/hs02-ui-fonts/OFL.txt)). Not affiliated with FNIRSI.

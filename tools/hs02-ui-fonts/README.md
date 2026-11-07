@@ -1,6 +1,6 @@
 # HS-02 modern UI fonts
 
-`gen_modern_font.py` bakes Inter (fonts/, SIL OFL 1.1, see OFL.txt) into
+`gen_modern_font.py` bakes Oswald (fonts/Oswald-Variable.ttf, SIL OFL 1.1, see OFL-Oswald.txt) into
 `source/Core/Threads/UI/drawing/color_160x80/Hs02ModernFont.hpp` for the colour
 home / soldering / sleep screens (`draw_home_gauge.cpp`).
 

@@ -11,12 +11,14 @@
 //
 // The framebuffer is 2bpp, so every row band gets its own 4-colour palette
 // (Display::setColorBands) -- that is how a black / white / grey / accent / tinted-accent
-// screen fits into 2 bits per pixel. Text is Inter (Hs02ModernFont.hpp), with a dim
+// screen fits into 2 bits per pixel. Text is Oswald (Hs02ModernFont.hpp), with a dim
 // "edge" colour giving two-level anti-aliasing where the band palette has room for it.
 //
-// State colours (iOS system palette, as on the status bar):
-//   standby grey · heating orange · at temperature green · boost red · sleep cyan · tip fault pink
+// State colours:
+//   standby purple · heating pale purple · at temperature pink · boost red · sleep purple ·
+//   cooling pale purple · startup warnings pale purple · faults red. Pink is also the system colour (menu, cursor, dialogs).
 #include "Hs02ModernFont.hpp"
+#include "Hs02PresetImages.hpp"
 #include "Hs02UiStrings.hpp"
 #include "OperatingModes.h"
 #include "TipThermoModel.h"
@@ -36,13 +38,13 @@ constexpr uint32_t kWhite     = 0xFFFFFF;
 constexpr uint32_t kGray      = 0x8E8E93; // secondary text
 constexpr uint32_t kEdge      = 0x3A3A3C; // anti-alias edge for white/grey text
 constexpr uint32_t kTrack     = 0x2C2C2E; // empty progress segment
-constexpr uint32_t kStandby   = 0x8E8E93;
-constexpr uint32_t kHeatingC  = 0xFF9F0A;
-constexpr uint32_t kReadyC    = 0x30D158;
-constexpr uint32_t kBoostC    = 0xFF453A;
-constexpr uint32_t kSleepC    = 0x64D2FF;
-constexpr uint32_t kFaultC    = 0xFF2D55;
-constexpr uint32_t kCoolingC  = 0x40C8E0; // teal: target lowered, tip cooling down
+constexpr uint32_t kStandby   = 0xBF5AF2; // purple, shared with sleep
+constexpr uint32_t kHeatingC  = 0xA898D0; // pale purple: heating, startup warnings
+constexpr uint32_t kReadyC    = 0xFF4DB8; // pink: at temperature (also the system colour)
+constexpr uint32_t kBoostC    = 0xFF3B30; // red
+constexpr uint32_t kSleepC    = 0xBF5AF2; // purple, shared with standby
+constexpr uint32_t kFaultC    = 0xFF3B30; // red: faults and alarms
+constexpr uint32_t kCoolingC  = 0xA898D0; // pale purple: target lowered, tip cooling down
 constexpr uint8_t  kHotTempC  = 50;       // standby warns while the tip is hotter than this
 
 // Row bands. Colour index meaning per band:
@@ -389,6 +391,120 @@ const char *targetCaption(uint16_t target, char *buf) {
   return buf;
 }
 
+// ---------------------------------------------------------------- heating: the heart
+// Heart = two discs + a triangle (crisp at this size), sampled at pixel centres.
+bool insideHeart(float x, float y) { // x in -1..1, y in -1 (bottom tip) .. 1 (top of lobes)
+  const float r = 0.52f, cy = 0.48f;
+  const float dl = (x + 0.48f) * (x + 0.48f) + (y - cy) * (y - cy), dr = (x - 0.48f) * (x - 0.48f) + (y - cy) * (y - cy);
+  if (dl <= r * r || dr <= r * r) {
+    return true;
+  }
+  // triangle: from the discs' outer tangents down to the tip at (0, -1)
+  if (y > 0.36f || y < -1.0f) {
+    return false;
+  }
+  const float halfW = 0.98f * (y + 1.0f) / 1.36f;
+  return x >= -halfW && x <= halfW;
+}
+// Heart of height h (width h * 10 / 9) centred on (cx, cy).
+void drawHeartShape(int16_t cx, int16_t cy, int16_t h, uint8_t color) {
+  const int16_t w = h * 10 / 9, top = cy - h / 2, left = cx - w / 2;
+  for (int16_t py = 0; py < h; py++) {
+    const float y = 1.0f - (py + 0.5f) * 2.0f / h;
+    for (int16_t px = 0; px < w; px++) {
+      if (insideHeart(-1.0f + (px + 0.5f) * 2.0f / w, y)) {
+        Display::fillRectColor(left + px, top + py, 1, 1, color);
+      }
+    }
+  }
+}
+
+// Heating / cooling: a pink heart with a dark heart inside (beats every 1.2 s), the device
+// name (kBootPill, Title face) and "Греемся… 56%" / "Остываем…".
+void drawHeartScreen(TemperatureType_t current, TemperatureType_t target, bool cooling) {
+  static ColorBand heartBands[2];
+  const uint16_t   black = rgb565(kBlack), white = rgb565(kWhite), gray = rgb565(kGray), edge = rgb565(kEdge);
+  heartBands[0] = {0, {black, rgb565(kReadyC), rgb565(mixRgb(kReadyC, kBlack, 115)), gray}};
+  heartBands[1] = {34, {black, white, edge, gray}};
+  Display::setColorBands(heartBands, 2);
+
+  const bool beat = ((xTaskGetTickCount() / (TICKS_SECOND * 2 / 5)) % 3) == 0; // short beat every 1.2 s
+  drawHeartShape(80, 17, beat ? 28 : 26, kAccent);
+  drawHeartShape(80, 17, 13, kTint);
+
+  const char   *name  = Hs02UiText::kBootPill();
+  const uint8_t nameW = textWidth(Hs02ModernFont::kTitle, name);
+  drawText(Hs02ModernFont::kTitle, name, (kScreenW - nameW) / 2, topFor(Hs02ModernFont::kTitle, 58), kInk, kEdgeIdx);
+
+  char  line[32];
+  char *p = append(line, cooling ? Hs02UiText::kCoolingHint() : Hs02UiText::kHeatingHint());
+  if (!cooling) {
+    *p++ = ' ';
+    append(formatUnsigned(p, progressX1000(current, target) / 10), "%");
+  }
+  const uint8_t lineW = textWidth(Hs02ModernFont::kLabel, line);
+  drawText(Hs02ModernFont::kLabel, line, (kScreenW - lineW) / 2, topFor(Hs02ModernFont::kLabel, 76), kGrayIdx, kEdgeIdx);
+}
+
+// ---------------------------------------------------------------- ready: preset picture
+// 0 when the target is not one of the presets, else 1..3.
+uint8_t presetIndex(uint16_t target) {
+  if (target == getSettingValue(SettingsOptions::PresetTemp1)) {
+    return 1;
+  }
+  if (target == getSettingValue(SettingsOptions::PresetTemp2)) {
+    return 2;
+  }
+  if (target == getSettingValue(SettingsOptions::PresetTemp3)) {
+    return 3;
+  }
+  return 0;
+}
+
+// A picture over the top 64 rows (Hs02PresetImages.hpp, 4 colours per 4-row band) and a black
+// strip below: a dot in `accent` and the tip temperature on the left, grey `info` on the right.
+void drawPictureScreen(uint8_t picture, uint32_t accent, TemperatureType_t current, const char *info) {
+  using Hs02PresetImages::kPicBandRows;
+  using Hs02PresetImages::kPicBands;
+  using Hs02PresetImages::kPicH;
+  using Hs02PresetImages::kPicW;
+  static ColorBand pictureBands[kPicBands + 1];
+  const Hs02PresetImages::Picture &pic = Hs02PresetImages::kPictures[picture];
+  for (uint8_t b = 0; b < kPicBands; b++) {
+    pictureBands[b].yStart = b * kPicBandRows;
+    for (uint8_t i = 0; i < 4; i++) {
+      pictureBands[b].colors[i] = pic.palettes[b][i];
+    }
+  }
+  // strip: 0 bg, 1 white, 2 accent, 3 grey
+  pictureBands[kPicBands] = {kPicH, {rgb565(kBlack), rgb565(kWhite), rgb565(accent), rgb565(kGray)}};
+  Display::setColorBands(pictureBands, kPicBands + 1);
+
+  // Blit the picture as horizontal runs of one colour index.
+  for (uint8_t y = 0; y < kPicH; y++) {
+    const uint8_t *row = pic.data + (uint16_t)y * (kPicW / 4);
+    uint8_t        runStart = 0, runColor = row[0] & 3;
+    for (uint8_t x = 1; x <= kPicW; x++) {
+      const uint8_t c = x < kPicW ? (row[x / 4] >> ((x % 4) * 2)) & 3 : 0xFF;
+      if (c != runColor) {
+        if (runColor) { // index 0 is already there (cleared frame)
+          Display::fillRectColor(runStart, y, x - runStart, 1, runColor);
+        }
+        runStart = x;
+        runColor = c;
+      }
+    }
+  }
+
+  constexpr uint8_t baseline = 77;
+  fillDot(kMargin + 2, 71, 2);
+  char text[8];
+  append(formatUnsigned(text, current > 999 ? 999 : current), "°");
+  drawText(Hs02ModernFont::kValue, text, kMargin + 8, topFor(Hs02ModernFont::kValue, baseline), 1);
+  const uint8_t infoW = textWidth(Hs02ModernFont::kLabel, info);
+  drawText(Hs02ModernFont::kLabel, info, kScreenW - kMargin - infoW, topFor(Hs02ModernFont::kLabel, baseline), 3);
+}
+
 } // namespace
 
 void ui_draw_home_gauge_idle(TemperatureType_t tipTemp) {
@@ -410,8 +526,9 @@ void ui_draw_home_gauge_idle(TemperatureType_t tipTemp) {
     applyTheme(on ? kBoostC : kStandby);
     drawStatusPill(Hs02UiText::kHot());
   } else {
-    applyTheme(kStandby);
-    drawStatusPill(Hs02UiText::kStandby());
+    // HS-67: the standby picture, "● 27°" and the hint "OK — нагрев".
+    drawPictureScreen(Hs02PresetImages::kStandby, kStandby, tipTemp, Hs02UiText::kHintHeat());
+    return;
   }
   drawSupplyVoltage();
   drawHeroTemperature(tipTemp);
@@ -440,6 +557,25 @@ void ui_draw_home_gauge_soldering(bool boostModeOn) {
   const bool              ready   = atTemperature(current, target);
   const bool              cooling = !ready && current > target + 10;
   const uint32_t          x10Watt = x10WattHistory.average();
+  // HS-67 layout: the heart screen while heating / cooling, the preset's picture once ready.
+  if (!boostModeOn && !ready) {
+    drawHeartScreen(current, target, cooling);
+    return;
+  }
+  if (!boostModeOn && ready && presetIndex(target)) {
+    // "пресет 2 · 38 Вт"
+    const uint8_t preset = presetIndex(target);
+    char          info[40];
+    char         *p = append(info, Hs02UiText::kPreset());
+    *p++            = ' ';
+    *p++            = (char)('0' + preset);
+    p               = append(p, "  ·  ");
+    p               = formatUnsigned(p, (x10Watt + 5) / 10);
+    *p++            = ' ';
+    append(p, Hs02UiText::kWatt());
+    drawPictureScreen(preset - 1, kReadyC, current, info);
+    return;
+  }
   if (boostModeOn) {
     applyTheme(kBoostC);
     drawStatusPill(Hs02UiText::kBoost());
@@ -470,16 +606,10 @@ void ui_draw_home_gauge_soldering(bool boostModeOn) {
   drawSleepCountdown();
 }
 
-// Boot splash: status pill + version, the model name in the hero face, the segment bar
+// Boot splash: status pill + version, the device name in the hero face, the segment bar
 // filling up and a "Загрузка  73%" footer. Turns green ("Готов") once the bar is full.
 void ui_draw_boot_screen(uint16_t progressX1000) {
-#if defined(MODEL_HS02A)
-  const char *model = "HS-02A";
-#elif defined(MODEL_HS02B)
-  const char *model = "HS-02B";
-#else
-  const char *model = "HS-02";
-#endif
+  const char *model = "HS-67"; // same splash name on HS-02A and HS-02B builds
   if (progressX1000 > 1000) {
     progressX1000 = 1000;
   }
@@ -512,7 +642,7 @@ void ui_draw_home_gauge_sleep(TemperatureType_t tipTemp) {
 
 // ---------------------------------------------------------------- settings menu
 namespace {
-constexpr uint32_t kMenuAccent = 0x0A84FF; // iOS system blue
+constexpr uint32_t kMenuAccent = kReadyC; // system colour: menu, cursor, dialogs
 ColorBand          menuBands[4];
 constexpr uint8_t  kRowTop = 18, kRowH = 20;
 } // namespace
@@ -554,7 +684,7 @@ void ui_draw_menu(const char *title, uint8_t position, uint8_t count, const Hs02
         // Value being edited: accent capsule with dark text, iOS-style.
         const uint8_t cw = w + 12, cx = kScreenW - 5 - cw;
         fillRounded(cx, y0 + 3, cw, kRowH - 6, (kRowH - 6) / 2, kGrayIdx /* accent in this band */);
-        drawText(Hs02ModernFont::kMenu, rows[r].value, cx + 6, topFor(Hs02ModernFont::kMenu, baseline), kBg);
+        drawText(Hs02ModernFont::kMenu, rows[r].value, cx + 6, topFor(Hs02ModernFont::kMenu, baseline), kBg, kEdgeIdx /* tint: soft edge on the accent */);
       } else {
         drawText(Hs02ModernFont::kMenu, rows[r].value, kScreenW - 9 - w, topFor(Hs02ModernFont::kMenu, baseline), kGrayIdx, edgeIdx);
       }

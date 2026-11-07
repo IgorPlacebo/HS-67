@@ -4,7 +4,6 @@
 - [ ] Preset chips (300 · 330 · 360) on the main screen
 - [ ] Brief highlight of the target when it changes
 - [ ] 12 px footer text, alternating standby hints, menu scroll bar
-- [ ] Colour versions of the remaining classic screens (legacy menu, diagnostics)
 - [ ] Verify on hardware: boot splash visibility, menu firmware-update flag on HS-02B, PD renegotiation on CFG change
 
 ---

@@ -19,6 +19,7 @@
 // n32l40x.h defines LCD as a peripheral pointer macro; free the name for the LCD class.
 #undef LCD
 #include "LCD.hpp"
+#include "Hs02StartupMelody.h"
 // #include "USBPD.h"
 // #include "configuration.h"
 // #include "history.hpp"
@@ -225,11 +226,86 @@ void setStatusLED(const enum StatusLED state) {
     GPIO_ResetBits(LED_Port, LED2_Pin);
 }
 
-void setBuzzer(bool on) {
-  // TIM2 runs a 2 kHz PWM with a period of 128; the duty cycle sets the loudness.
-  // 63 (50%) is far too loud and draws too much current, ~19 (15%) is a sensible maximum.
+// ---- Buzzer -------------------------------------------------------------------------------
+// TIM2 counts at 1 MHz; its period sets the pitch and the duty cycle the loudness. Duty is
+// expressed per 128 of the period: 63 (50%) is far too loud and draws too much current,
+// BUZZER_MAX_DUTY (~15%) is a sensible maximum at volume 10.
+static uint16_t buzzerCompare(bool on) {
   const uint16_t volume = getSettingValue(SettingsOptions::BuzzerVolume); // 0..10
-  TIM_SetCmp1(TIM2, (on && volume) ? (uint16_t)(2 + (volume * (BUZZER_MAX_DUTY - 2)) / 10) : 0);
+  if (!on || !volume) {
+    return 0;
+  }
+  const uint32_t dutyOf128 = 2 + (volume * (BUZZER_MAX_DUTY - 2)) / 10;
+  return (uint16_t)(((uint32_t)TIM2->AR + 1) * dutyOf128 / 128);
+}
+
+static void buzzerTone(uint16_t hz) {
+  TIM_SetAutoReload(TIM2, (uint16_t)(1000000UL / hz - 1));
+}
+
+// Power-on melody (Hs02StartupMelody.h, baked from tools/hs02-ui-sounds/startup.rtttl). The
+// TIM2 update interrupt counts periods of the current note, so timing does not depend on the
+// GUI frame rate; the CPU cost is one short interrupt per buzzer period while it plays.
+static volatile uint16_t melodyIndex  = 0xFFFF; // 0xFFFF = not playing
+static volatile uint32_t melodyCycles = 0;
+
+static void melodyLoad(uint16_t index) {
+  const Hs02MelodyNote &note = kHs02StartupMelody[index];
+  const uint16_t        hz   = note.hz ? note.hz : 1000; // rests tick at 1 kHz, silent
+  buzzerTone(hz);
+  TIM_SetCmp1(TIM2, note.hz ? buzzerCompare(true) : 0);
+  const uint32_t cycles = (uint32_t)hz * note.ms / 1000;
+  melodyCycles          = cycles ? cycles : 1;
+}
+
+static void melodyFinish() {
+  TIM_ConfigInt(TIM2, TIM_INT_UPDATE, DISABLE);
+  melodyIndex = 0xFFFF;
+  TIM_SetCmp1(TIM2, 0);
+  buzzerTone(2000);
+}
+
+void playStartupMelody(void) {
+  if (!getSettingValue(SettingsOptions::BuzzerVolume) || kHs02StartupMelodyLength == 0) {
+    return;
+  }
+  TIM_ConfigInt(TIM2, TIM_INT_UPDATE, DISABLE);
+  melodyIndex = 0;
+  melodyLoad(0);
+  TIM_ClrIntPendingBit(TIM2, TIM_INT_UPDATE);
+  NVIC_SetPriority(TIM2_IRQn, 14);
+  NVIC_EnableIRQ(TIM2_IRQn);
+  TIM_ConfigInt(TIM2, TIM_INT_UPDATE, ENABLE);
+}
+
+void stopStartupMelody(void) {
+  if (melodyIndex != 0xFFFF) {
+    melodyFinish();
+  }
+}
+
+extern "C" void TIM2_IRQHandler(void) {
+  if (SET == TIM_GetIntStatus(TIM2, TIM_INT_UPDATE)) {
+    TIM_ClrIntPendingBit(TIM2, TIM_INT_UPDATE);
+    if (melodyIndex == 0xFFFF) {
+      return;
+    }
+    if (--melodyCycles == 0) {
+      const uint16_t next = melodyIndex + 1;
+      if (next >= kHs02StartupMelodyLength) {
+        melodyFinish();
+      } else {
+        melodyIndex = next;
+        melodyLoad(next);
+      }
+    }
+  }
+}
+
+void setBuzzer(bool on) {
+  stopStartupMelody(); // UI beeps take over the buzzer
+  buzzerTone(2000);
+  TIM_SetCmp1(TIM2, buzzerCompare(on));
 }
 
 // CH224K level configuration (CFG1 tied low on the board): CFG2/CFG3 =
@@ -430,6 +506,7 @@ void showBootLogo(void) {
   constexpr uint8_t    frames     = 24;
   constexpr TickType_t frameTicks = TICKS_SECOND / 20;
   LCD::setColorMode(true);
+  playStartupMelody(); // runs in the background from the TIM2 interrupt
   for (uint8_t f = 0; f <= frames; f++) {
     const uint32_t t     = (uint32_t)f * 1000 / frames;           // 0..1000 linear
     const uint32_t eased = t * t * (3000 - 2 * t) / 1000000;      // smoothstep, 0..1000
@@ -445,11 +522,16 @@ void showBootLogo(void) {
     // ~0.6 s so a press/release still in flight from power-up can't hide the splash.
     const ButtonState buttons = getButtonState();
     if (f >= 12 && buttons != BUTTON_NONE) {
+      stopStartupMelody();
       return;
     }
     vTaskDelay(frameTicks);
   }
+  const TickType_t waitStart = xTaskGetTickCount();
   waitForButtonPressOrTimeout(TICKS_SECOND * 2 / 3);
+  if (xTaskGetTickCount() - waitStart < TICKS_SECOND * 2 / 3 - 2) {
+    stopStartupMelody(); // a button skipped the splash: skip the tune too (else it plays on in standby)
+  }
 }
 
 bool getFUS302IRQLow() { return false; }

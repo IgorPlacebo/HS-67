@@ -342,8 +342,8 @@ static void tim2Init(void) {
 
   timBaseInitStruct.CntMode   = TIM_CNT_MODE_UP;
   timBaseInitStruct.RepetCnt  = 0;
-  timBaseInitStruct.Prescaler = 249; // 64MHz / (249+1) -> 256kHz tick
-  timBaseInitStruct.Period    = 127; // 256kHz / (127+1) -> 2kHz
+  timBaseInitStruct.Prescaler = 63;  // 64MHz / (63+1) -> 1MHz tick, so the period is in microseconds
+  timBaseInitStruct.Period    = 499; // 1MHz / (499+1) -> 2kHz (the melody player changes it per note)
 
   TIM_InitTimeBase(TIM2, &timBaseInitStruct);
 

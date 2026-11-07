@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 
   Hs02MenuRow root[3] = {{kMenuSleep(), "", HS02_ROW_SUBMENU}, {kMenuTip(), "", HS02_ROW_SUBMENU}, {kMenuSystem(), "", HS02_ROW_SUBMENU}};
   Display::clearColor();
-  ui_draw_menu(kMenuTitle(), 1, 5, root, 3, 1, false);
+  ui_draw_menu(kMenuTitle(), 1, 4, root, 3, 1, false);
   dump("menu_root");
   char p1[32], p2[32], p3[32];
   snprintf(p1, sizeof p1, "%s 1", kItemPreset());
